@@ -4,6 +4,7 @@ import os.path as op
 import shutil
 
 import nibabel as nib
+import pandas as pd
 
 from . import utils, features
 
@@ -189,24 +190,27 @@ def aroma_workflow(
     utils.register2MNI(fsl_dir, mel_IC, mel_IC_MNI, affmat, warp)
 
     print("  - extracting the CSF & Edge fraction features")
-    edge_fract, csf_fract = features.feature_spatial(mel_IC_MNI)
+    features_df = pd.DataFrame()
+    features_df["edge_fract"], features_df["csf_fract"] = features.feature_spatial(
+        mel_IC_MNI
+    )
 
     print("  - extracting the Maximum RP correlation feature")
     mel_mix = op.join(out_dir, "melodic.ica", "melodic_mix")
-    max_RP_corr = features.feature_time_series(mel_mix, mc)
+    features_df["max_RP_corr"] = features.feature_time_series(mel_mix, mc)
 
     print("  - extracting the High-frequency content feature")
     mel_FT_mix = op.join(out_dir, "melodic.ica", "melodic_FTmix")
-    HFC = features.feature_frequency(mel_FT_mix, TR)
+    features_df["HFC"] = features.feature_frequency(mel_FT_mix, TR)
 
     print("  - classification")
-    motion_ICs = utils.classification(out_dir, max_RP_corr, edge_fract, HFC, csf_fract)
+    motion_ICs = utils.classification(features_df, out_dir)
 
     if generate_plots:
         from . import plotting
 
         plotting.classification_plot(
-            op.join(out_dir, "classification_overview.txt"), out_dir
+            op.join(out_dir, "classification_overview.tsv"), out_dir
         )
 
     if den_type != "no":
