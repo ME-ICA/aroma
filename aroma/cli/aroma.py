@@ -38,7 +38,11 @@ def _get_parser():
         dest="in_file",
         type=lambda x: is_valid_file(parser, x),
         required=False,
-        help="Input file name of fMRI data (.nii.gz)",
+        help=(
+            "Input file name of fMRI data (.nii.gz). "
+            "This file may be in standard (MNI152) or native space, with some restrictions. "
+            "The data should be smoothed prior to running AROMA."
+        ),
     )
     inputs.add_argument(
         "-f",
@@ -47,8 +51,9 @@ def _get_parser():
         required=False,
         type=lambda x: is_valid_path(parser, x),
         help=(
-            "Feat directory name (Feat should have been run without temporal "
-            "filtering and including registration to MNI152)"
+            "Path to FSL FEAT directory. "
+            "FEAT should have been run without temporal filtering, "
+            "but with registration to MNI152 space."
         ),
     )
 
@@ -113,6 +118,17 @@ def _get_parser():
     # Optional options
     optoptions = parser.add_argument_group("Optional arguments")
     optoptions.add_argument("-tr", dest="TR", help="TR in seconds", type=float)
+    optoptions.add_argument(
+        "--csf",
+        dest="csf",
+        type=lambda x: is_valid_file(parser, x),
+        default=None,
+        help=(
+            "Path to a cerebrospinal fluid (CSF) mask or tissue probability map. "
+            "If this file is not provided, then data are assumed to be in standard space, "
+            "and prepackaged masks will be used instead."
+        ),
+    )
     optoptions.add_argument(
         "-den",
         dest="den_type",

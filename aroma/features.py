@@ -1,12 +1,11 @@
 """Functions to calculate ICA-AROMA features for component classification."""
 import logging
-import os
 
 import nibabel as nib
 import numpy as np
 from nilearn import image, masking
 
-from .utils import cross_correlation, get_resource_path
+from .utils import cross_correlation
 
 LGR = logging.getLogger(__name__)
 
@@ -154,7 +153,7 @@ def feature_frequency(mel_FT_mix, TR):
     return HFC
 
 
-def feature_spatial(mel_IC):
+def feature_spatial(mel_IC, masks):
     """Extract the spatial feature scores.
 
     For each IC it determines the fraction of the mixture modeled thresholded
@@ -166,6 +165,9 @@ def feature_spatial(mel_IC):
     mel_IC : str
         Full path of the nii.gz file containing mixture-modeled thresholded
         (p<0.5) Z-maps, registered to the MNI152 2mm template
+    masks : dict
+        Dictionary of masks. Keys are mask names and values are img_like
+        objects.
 
     Returns
     -------
@@ -179,11 +181,6 @@ def feature_spatial(mel_IC):
     # Get the number of ICs
     mel_IC_img = nib.load(mel_IC)
     num_ICs = mel_IC_img.shape[3]
-
-    masks_dir = get_resource_path()
-    csf_mask = os.path.join(masks_dir, "mask_csf.nii.gz")
-    edge_mask = os.path.join(masks_dir, "mask_edge.nii.gz")
-    out_mask = os.path.join(masks_dir, "mask_out.nii.gz")
 
     # Loop over ICs
     edge_fract = np.zeros(num_ICs)
@@ -206,17 +203,17 @@ def feature_spatial(mel_IC):
 
         # Get sum of Z-values of the voxels located within the CSF
         # (calculate via the mean and number of non-zero voxels)
-        csf_data = masking.apply_mask(temp_IC, csf_mask)
+        csf_data = masking.apply_mask(temp_IC, masks["csf"])
         csf_sum = np.sum(csf_data)
 
         # Get sum of Z-values of the voxels located within the Edge
         # (calculate via the mean and number of non-zero voxels)
-        edge_data = masking.apply_mask(temp_IC, edge_mask)
+        edge_data = masking.apply_mask(temp_IC, masks["edge"])
         edge_sum = np.sum(edge_data)
 
         # Get sum of Z-values of the voxels located outside the brain
         # (calculate via the mean and number of non-zero voxels)
-        out_data = masking.apply_mask(temp_IC, out_mask)
+        out_data = masking.apply_mask(temp_IC, masks["out"])
         out_sum = np.sum(out_data)
 
         # Determine edge and CSF fraction

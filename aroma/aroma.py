@@ -28,7 +28,8 @@ def aroma_workflow(
     overwrite=False,
     generate_plots=True,
     debug=False,
-    quiet=False
+    quiet=False,
+    csf=None,
 ):
     """Run the AROMA workflow.
 
@@ -188,56 +189,28 @@ def aroma_workflow(
 
     # Define/create mask. Either by making a copy of the specified mask, or by
     # creating a new one.
-    new_mask = op.join(out_dir, "mask.nii.gz")
-    if mask:
-        shutil.copyfile(mask, new_mask)
-    elif in_feat and op.isfile(op.join(in_feat, "example_func.nii.gz")):
-        # If a Feat directory is specified, and an example_func is present use
-        # example_func to create a mask
-        bet_command = "{0} {1} {2} -f 0.3 -n -m -R".format(
-            op.join(fsl_dir, "bet"),
-            op.join(in_feat, "example_func.nii.gz"),
-            op.join(out_dir, "bet"),
-        )
-        os.system(bet_command)
-        os.rename(op.join(out_dir, "bet_mask.nii.gz"), new_mask)
-        if op.isfile(op.join(out_dir, "bet.nii.gz")):
-            os.remove(op.join(out_dir, "bet.nii.gz"))
-    else:
-        if in_feat:
-            LGR.warning(
-                " - No example_func was found in the Feat directory. "
-                "A mask will be created including all voxels with varying "
-                "intensity over time in the fMRI data. Please check!\n"
-            )
-        math_command = "{0} {1} -Tstd -bin {2}".format(
-            op.join(fsl_dir, "fslmaths"), in_file, new_mask
-        )
-        os.system(math_command)
+    masks = utils.derive_masks(in_file, csf=csf)
 
     # Run ICA-AROMA
     LGR.info("Step 1) MELODIC")
-    utils.runICA(fsl_dir, in_file, out_dir, mel_dir, new_mask, dim, TR)
+    component_maps, mixing, mixing_FT = utils.runICA(fsl_dir, in_file, out_dir, mel_dir, masks["brain"], dim, TR)
 
     LGR.info("Step 2) Automatic classification of the components")
     LGR.info("  - registering the spatial maps to MNI")
-    mel_IC = op.join(out_dir, "melodic_IC_thr.nii.gz")
     mel_IC_MNI = op.join(out_dir, "melodic_IC_thr_MNI2mm.nii.gz")
-    utils.register2MNI(fsl_dir, mel_IC, mel_IC_MNI, affmat, warp)
+    utils.register2MNI(fsl_dir, component_maps, mel_IC_MNI, affmat, warp)
 
     LGR.info("  - extracting the CSF & Edge fraction features")
     features_df = pd.DataFrame()
     features_df["edge_fract"], features_df["csf_fract"] = features.feature_spatial(
-        mel_IC_MNI
+        mel_IC_MNI, masks
     )
 
     LGR.info("  - extracting the Maximum RP correlation feature")
-    mel_mix = op.join(out_dir, "melodic.ica", "melodic_mix")
-    features_df["max_RP_corr"] = features.feature_time_series(mel_mix, mc)
+    features_df["max_RP_corr"] = features.feature_time_series(mixing, mc)
 
     LGR.info("  - extracting the High-frequency content feature")
-    mel_FT_mix = op.join(out_dir, "melodic.ica", "melodic_FTmix")
-    features_df["HFC"] = features.feature_frequency(mel_FT_mix, TR)
+    features_df["HFC"] = features.feature_frequency(mixing_FT, TR)
 
     LGR.info("  - classification")
     motion_ICs = utils.classification(features_df, out_dir)
@@ -252,6 +225,6 @@ def aroma_workflow(
     if den_type != "no":
         LGR.info("Step 3) Data denoising")
         utils.denoising(fsl_dir, in_file, out_dir,
-                        mel_mix, den_type, motion_ICs)
+                        mixing, den_type, motion_ICs)
 
     LGR.info("Finished")
