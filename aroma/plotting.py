@@ -1,14 +1,16 @@
 """Plotting functions for ICA-AROMA."""
+import logging
 import os
 
 import pandas as pd
 import numpy as np
 import matplotlib as mpl
-
-mpl.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import seaborn as sns
+
+mpl.use('Agg')
+LGR = logging.getLogger(__name__)
 
 
 def classification_plot(in_file, out_dir):
@@ -28,11 +30,8 @@ def classification_plot(in_file, out_dir):
     # get counts
     n_components = df.shape[0]
     n_motion_components = motion_components_df.shape[0]
-    print(
-        "Found {} head motion-related components in a total of {} components.".format(
-            n_motion_components, n_components
-        )
-    )
+    LGR.info('Found', n_motion_components, 'head motion-related components in a total of',
+             n_components, 'components.')
 
     # add dummy components if needed, this is just for making the plots look nice
     if n_motion_components < 3:
