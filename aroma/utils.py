@@ -61,9 +61,9 @@ def runICA(fsl_dir, in_file, out_dir, mel_dir_in, mask, dim, TR):
         if op.isdir(op.join(mel_dir_in, 'stats')):
             os.symlink(mel_dir_in, mel_dir)
         else:
-            LGR.warning("  - The MELODIC directory does not contain the required "
-                        "'stats' folder. Mixture modeling on the Z-statistical "
-                        "maps will be run.")
+            LGR.warning("  - The MELODIC directory does not contain the "
+                        "required 'stats' folder. Mixture modeling on the "
+                        "Z-statistical maps will be run.")
 
             # Create symbolic links to the items in the specified melodic
             # directory
@@ -73,8 +73,8 @@ def runICA(fsl_dir, in_file, out_dir, mel_dir_in, mask, dim, TR):
                            op.join(mel_dir, item))
 
             # Run mixture modeling
-            melodic_command = ("{0} --in={1} --ICs={1} --mix={2} --out_dir={3} "
-                               "--0stats --mmthresh=0.5").format(
+            melodic_command = ("{0} --in={1} --ICs={1} --mix={2} "
+                               "--out_dir={3} --0stats --mmthresh=0.5").format(
                                     op.join(fsl_dir, 'melodic'),
                                     mel_IC,
                                     mel_IC_mix,
@@ -87,12 +87,12 @@ def runICA(fsl_dir, in_file, out_dir, mel_dir_in, mask, dim, TR):
         # does not exist at all)
         if mel_dir_in:
             if not op.isdir(mel_dir_in):
-                LGR.warning('  - The specified MELODIC directory does not exist. '
-                            'MELODIC will be run separately.')
+                LGR.warning('  - The specified MELODIC directory does not '
+                            'exist. MELODIC will be run separately.')
             else:
-                LGR.warning('  - The specified MELODIC directory does not contain '
-                            'the required files to run ICA-AROMA. MELODIC will be '
-                            'run separately.')
+                LGR.warning('  - The specified MELODIC directory does not '
+                            'contain the required files to run ICA-AROMA. '
+                            'MELODIC will be run separately.')
 
         # Run MELODIC
         melodic_command = ("{0} --in={1} --outdir={2} --mask={3} --dim={4} "
@@ -370,7 +370,8 @@ def denoising(fsl_dir, in_file, out_dir, mixing, den_type, den_idx):
     # Check if denoising is needed (i.e. are there motion components?)
     motion_components_found = den_idx.size > 0
 
-    nonaggr_denoised_file = op.join(out_dir, "denoised_func_data_nonaggr.nii.gz")
+    nonaggr_denoised_file = op.join(out_dir,
+                                    "denoised_func_data_nonaggr.nii.gz")
     aggr_denoised_file = op.join(out_dir, "denoised_func_data_aggr.nii.gz")
 
     if motion_components_found:
@@ -408,8 +409,9 @@ def denoising(fsl_dir, in_file, out_dir, mixing, den_type, den_idx):
             img_denoised.to_filename(aggr_denoised_file)
     else:
         LGR.warning(
-                    "  - None of the components were classified as motion, so no "
-                    "denoising is applied (the input file is copied as-is)."
+                    "  - None of the components were classified as motion, "
+                    "so no denoising is applied (the input file is copied "
+                    "as-is)."
         )
         if den_type in ("nonaggr", "both"):
             shutil.copyfile(in_file, nonaggr_denoised_file)
