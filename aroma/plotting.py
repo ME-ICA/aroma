@@ -6,11 +6,11 @@ import glob
 import pandas as pd
 import numpy as np
 import matplotlib as mpl
-mpl.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import seaborn as sns
 
+mpl.use('Agg')
 LGR = logging.getLogger(__name__)
 
 
@@ -53,9 +53,11 @@ def classification_plot(myinput, out_dir):
     # get counts
     ncomp = len(df)
     nmot = len(df.loc[df[0] == "True"])
-    LGR.info('Found', nmot, 'head motion-related components in a total of', ncomp, 'components.')
+    LGR.info('Found', nmot, 'head motion-related components in a total of',
+             ncomp, 'components.')
 
-    # add dummy components if needed, this is just for making the plots look nice
+    # add dummy components if needed,
+    # this is just for making the plots look nice
     tmp = df.loc[df[0] == "True"]
     if len(tmp) < 3:
         df3 = pd.DataFrame.from_records([["True", 1., 1., 0., 0.],
