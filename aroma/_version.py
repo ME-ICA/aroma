@@ -178,7 +178,7 @@ def git_versions_from_keywords(keywords, tag_prefix, verbose):
     refnames = keywords["refnames"].strip()
     if refnames.startswith("$Format"):
         if verbose:
-            LGR.info("keywords are unexpanded, not using")
+            LGR.info("Keywords are unexpanded, not using")
         raise NotThisMethod("unexpanded keywords, not a git-archive tarball")
     refs = set([r.strip() for r in refnames.strip("()").split(",")])
     # starting in git-1.8.3, tags are listed as "tag: foo-1.0" instead of
