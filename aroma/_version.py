@@ -195,7 +195,7 @@ def git_versions_from_keywords(keywords, tag_prefix, verbose):
         # "stabilization", as well as "HEAD" and "master".
         tags = set([r for r in refs if re.search(r'\d', r)])
         if verbose:
-            LGR.info("discarding '%s', no digits" % ",".join(refs - tags))
+            LGR.info("Discarding '%s', no digits" % ",".join(refs - tags))
     if verbose:
         LGR.info("likely tags: %s" % ",".join(sorted(tags)))
     for ref in sorted(tags):
