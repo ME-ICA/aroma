@@ -1,11 +1,15 @@
 """The core workflow for AROMA."""
+import datetime
+import logging
 import os
 import os.path as op
 import shutil
 
 import nibabel as nib
 
-from . import utils, features
+from aroma import utils, features, _version
+
+LGR = logging.getLogger(__name__)
 
 
 def aroma_workflow(
@@ -22,15 +26,45 @@ def aroma_workflow(
     TR=None,
     overwrite=False,
     generate_plots=True,
+    debug=False,
+    quiet=False
 ):
+    # Create logfile name
+    basename = 'aroma_'
+    extension = 'tsv'
+    isotime = datetime.datetime.now().strftime('%Y-%m-%dT%H%M%S')
+    logname = os.path.join(out_dir, (basename + isotime + '.' + extension))
+
+    # Set logging format
+    log_formatter = logging.Formatter(
+        '%(asctime)s\t%(name)-12s\t%(levelname)-8s\t%(message)s',
+        datefmt='%Y-%m-%dT%H:%M:%S')
+
+    # Set up logging file and open it for writing
+    log_handler = logging.FileHandler(logname)
+    log_handler.setFormatter(log_formatter)
+    sh = logging.StreamHandler()
+
+    # add logger mode options
+    if quiet:
+        logging.basicConfig(level=logging.WARNING,
+                            handlers=[log_handler, sh], format='%(levelname)-10s %(message)s')
+    elif debug:
+        logging.basicConfig(level=logging.DEBUG,
+                            handlers=[log_handler, sh], format='%(levelname)-10s %(message)s')
+    else:
+        logging.basicConfig(level=logging.INFO,
+                            handlers=[log_handler, sh], format='%(levelname)-10s %(message)s')
+    version_number = _version.get_versions()['version']
+    LGR.info(f'Currently running ICA-AROMA version {version_number}')
     """Run the AROMA workflow.
 
     Parameters
     ----------
     in_feat
     """
-    print("\n------------------------ RUNNING ICA-AROMA ------------------------")
-    print("-------- 'ICA-based Automatic Removal Of Motion Artifacts' --------\n")
+    LGR.info("\n------------------------ RUNNING ICA-AROMA ------------------------")
+    LGR.info("-------- 'ICA-based Automatic Removal Of Motion Artifacts' --------\n")
     if in_feat and in_file:
         raise ValueError("Only one of 'in_feat' and 'in_file' may be provided.")
 
@@ -76,12 +110,12 @@ def aroma_workflow(
     else:
         # Check whether the files exist
         if not in_file:
-            print("No input file specified.")
+            LGR.warning("No input file specified.")
         elif not op.isfile(in_file):
             raise Exception("The specified input file does not exist.")
 
         if not mc:
-            print("No mc file specified.")
+            LGR.warning("No mc file specified.")
         elif not op.isfile(mc):
             raise Exception("The specified mc file does does not exist.")
 
@@ -97,7 +131,7 @@ def aroma_workflow(
 
     # Check if the type of denoising is correctly specified, when specified
     if den_type not in ("nonaggr", "aggr", "both", "no"):
-        print(
+        LGR.warning(
             "Type of denoising was not correctly specified. Non-aggressive "
             "denoising will be run."
         )
@@ -110,9 +144,8 @@ def aroma_workflow(
 
     # Create output directory if needed
     if op.isdir(out_dir) and not overwrite:
-        print(
-            "Output directory",
-            out_dir,
+        LGR.info(
+            f"Output directory {out_dir},"
             """already exists.
             AROMA will not continue.
             Rerun with the -overwrite option to explicitly overwrite
@@ -120,8 +153,8 @@ def aroma_workflow(
         )
         return
     elif op.isdir(out_dir) and overwrite:
-        print(
-            "Warning! Output directory {} exists and will be overwritten."
+        LGR.warning(
+            "Output directory {} exists and will be overwritten."
             "\n".format(out_dir)
         )
         shutil.rmtree(out_dir)
@@ -136,8 +169,8 @@ def aroma_workflow(
 
     # Check TR
     if TR == 1:
-        print(
-            "Warning! Please check whether the determined TR (of "
+        LGR.warning(
+            "Please check whether the determined TR (of "
             + str(TR)
             + "s) is correct!\n"
         )
@@ -168,7 +201,7 @@ def aroma_workflow(
             os.remove(op.join(out_dir, "bet.nii.gz"))
     else:
         if in_feat:
-            print(
+            LGR.warning(
                 " - No example_func was found in the Feat directory. "
                 "A mask will be created including all voxels with varying "
                 "intensity over time in the fMRI data. Please check!\n"
@@ -179,27 +212,27 @@ def aroma_workflow(
         os.system(math_command)
 
     # Run ICA-AROMA
-    print("Step 1) MELODIC")
+    LGR.info("Step 1) MELODIC")
     utils.runICA(fsl_dir, in_file, out_dir, mel_dir, new_mask, dim, TR)
 
-    print("Step 2) Automatic classification of the components")
-    print("  - registering the spatial maps to MNI")
+    LGR.info("Step 2) Automatic classification of the components")
+    LGR.info("  - registering the spatial maps to MNI")
     mel_IC = op.join(out_dir, "melodic_IC_thr.nii.gz")
     mel_IC_MNI = op.join(out_dir, "melodic_IC_thr_MNI2mm.nii.gz")
     utils.register2MNI(fsl_dir, mel_IC, mel_IC_MNI, affmat, warp)
 
-    print("  - extracting the CSF & Edge fraction features")
+    LGR.info("  - extracting the CSF & Edge fraction features")
     edge_fract, csf_fract = features.feature_spatial(mel_IC_MNI)
 
-    print("  - extracting the Maximum RP correlation feature")
+    LGR.info("  - extracting the Maximum RP correlation feature")
     mel_mix = op.join(out_dir, "melodic.ica", "melodic_mix")
     max_RP_corr = features.feature_time_series(mel_mix, mc)
 
-    print("  - extracting the High-frequency content feature")
+    LGR.info("  - extracting the High-frequency content feature")
     mel_FT_mix = op.join(out_dir, "melodic.ica", "melodic_FTmix")
     HFC = features.feature_frequency(mel_FT_mix, TR)
 
-    print("  - classification")
+    LGR.info("  - classification")
     motion_ICs = utils.classification(out_dir, max_RP_corr, edge_fract, HFC, csf_fract)
 
     if generate_plots:
@@ -210,7 +243,7 @@ def aroma_workflow(
         )
 
     if den_type != "no":
-        print("Step 3) Data denoising")
+        LGR.info("Step 3) Data denoising")
         utils.denoising(fsl_dir, in_file, out_dir, mel_mix, den_type, motion_ICs)
 
-    print("Finished")
+    LGR.info("Finished")
