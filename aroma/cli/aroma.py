@@ -45,6 +45,7 @@ def _get_parser():
         "-feat",
         dest="in_feat",
         required=False,
+        default=None,
         type=lambda x: is_valid_path(parser, x),
         help=(
             "Feat directory name (Feat should have been run without temporal "
