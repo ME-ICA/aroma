@@ -68,13 +68,16 @@ def aroma_workflow(
     # add logger mode options
     if quiet:
         logging.basicConfig(level=logging.WARNING,
-                            handlers=[log_handler, sh], format='%(levelname)-10s %(message)s')
+                            handlers=[log_handler, sh],
+                            format='%(levelname)-10s %(message)s')
     elif debug:
         logging.basicConfig(level=logging.DEBUG,
-                            handlers=[log_handler, sh], format='%(levelname)-10s %(message)s')
+                            handlers=[log_handler, sh],
+                            format='%(levelname)-10s %(message)s')
     else:
         logging.basicConfig(level=logging.INFO,
-                            handlers=[log_handler, sh], format='%(levelname)-10s %(message)s')
+                            handlers=[log_handler, sh],
+                            format='%(levelname)-10s %(message)s')
     version_number = _version.get_versions()['version']
     LGR.info(f'Currently running ICA-AROMA version {version_number}')
     """Run the AROMA workflow.
@@ -83,10 +86,13 @@ def aroma_workflow(
     ----------
     in_feat
     """
-    LGR.info("\n------------------------ RUNNING ICA-AROMA ------------------------")
-    LGR.info("-------- 'ICA-based Automatic Removal Of Motion Artifacts' --------\n")
+    LGR.info("\n------------------------ "
+             "RUNNING ICA-AROMA ------------------------")
+    LGR.info("-------- "
+             "'ICA-based Automatic Removal Of Motion Artifacts' --------\n")
     if in_feat and in_file:
-        raise ValueError("Only one of 'in_feat' and 'in_file' may be provided.")
+        raise ValueError("Only one of 'in_feat' "
+                         "and 'in_file' may be provided.")
 
     if in_feat and (mc or affmat or warp or mask):
         raise ValueError(
@@ -109,7 +115,8 @@ def aroma_workflow(
 
         # Check whether these files actually exist
         if not op.isfile(in_file):
-            raise Exception("Missing filtered_func_data.nii.gz in Feat directory.")
+            raise Exception("Missing filtered_func_data.nii.gz"
+                            "in Feat directory.")
 
         if not op.isfile(mc):
             raise Exception(
@@ -117,7 +124,8 @@ def aroma_workflow(
             )
 
         if not op.isfile(affmat):
-            raise Exception("Missing reg/example_func2highres.mat in Feat directory.")
+            raise Exception("Missing reg/example_func2highres.mat"
+                            "in Feat directory.")
 
         if not op.isfile(warp):
             raise Exception(
@@ -232,7 +240,8 @@ def aroma_workflow(
     HFC = features.feature_frequency(mel_FT_mix, TR)
 
     LGR.info("  - classification")
-    motion_ICs = utils.classification(out_dir, max_RP_corr, edge_fract, HFC, csf_fract)
+    motion_ICs = utils.classification(out_dir, max_RP_corr,
+                                      edge_fract, HFC, csf_fract)
 
     if generate_plots:
         from . import plotting
@@ -243,6 +252,7 @@ def aroma_workflow(
 
     if den_type != "no":
         LGR.info("Step 3) Data denoising")
-        utils.denoising(fsl_dir, in_file, out_dir, mel_mix, den_type, motion_ICs)
+        utils.denoising(fsl_dir, in_file, out_dir,
+                        mel_mix, den_type, motion_ICs)
 
     LGR.info("Finished")
