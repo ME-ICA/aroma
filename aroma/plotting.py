@@ -154,14 +154,6 @@ def classification_plot(myinput, out_dir):
                     hue_order=['True', 'False'],
                     ax=ax1,
                     s=sizemarker)
-    # plot true ones on top to see how much the go over the border
-    # this gives an indication for how many were selected using the
-    # two other features
-    # ax1.scatter(x="RP",
-    #             y="Edge",
-    #             data=df.loc[df['Motion'] == "True"],
-    #             color=colortrue,
-    #             s=sizemarker
     # add decision boundary
     ax1.plot(xx, yy, '.', color="k", markersize=1)
     # styling
