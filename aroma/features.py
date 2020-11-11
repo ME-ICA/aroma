@@ -1,4 +1,5 @@
 """Functions to calculate ICA-AROMA features for component classification."""
+import logging
 import os
 
 import nibabel as nib
@@ -6,6 +7,8 @@ import numpy as np
 from nilearn import image, masking
 
 from .utils import cross_correlation, get_resource_path
+
+LGR = logging.getLogger(__name__)
 
 
 def feature_time_series(mel_mix, mc):
@@ -198,8 +201,8 @@ def feature_spatial(mel_IC):
         tot_sum = np.sum(temp_IC_data)
 
         if tot_sum == 0:
-            print("\t- The spatial map of component {} is empty. "
-                  "Please check!".format(i + 1))
+            LGR.info("\t- The spatial map of component {} is empty. "
+                     "Please check!".format(i + 1))
 
         # Get sum of Z-values of the voxels located within the CSF
         # (calculate via the mean and number of non-zero voxels)

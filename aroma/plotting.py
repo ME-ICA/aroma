@@ -1,4 +1,5 @@
 """Plotting functions for ICA-AROMA."""
+import logging
 import os
 import glob
 
@@ -9,6 +10,8 @@ mpl.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import seaborn as sns
+
+LGR = logging.getLogger(__name__)
 
 
 def classification_plot(myinput, out_dir):
@@ -21,7 +24,7 @@ def classification_plot(myinput, out_dir):
     """
     # find files
     myfiles = glob.glob(myinput)
-    print('Found', len(myfiles), 'file(s)')
+    LGR.info('Found', len(myfiles), 'file(s)')
 
     # load in data from files
     count = 0
@@ -50,7 +53,7 @@ def classification_plot(myinput, out_dir):
     # get counts
     ncomp = len(df)
     nmot = len(df.loc[df[0] == "True"])
-    print('Found', nmot, 'head motion-related components in a total of', ncomp, 'components.')
+    LGR.info('Found', nmot, 'head motion-related components in a total of', ncomp, 'components.')
 
     # add dummy components if needed, this is just for making the plots look nice
     tmp = df.loc[df[0] == "True"]
