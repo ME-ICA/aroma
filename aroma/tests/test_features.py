@@ -18,7 +18,7 @@ def test_feature_time_series(nilearn_data):
 
     # Extract motion parameters from confounds
     mc = confounds[["rot_x", "rot_y", "rot_z", "trans_x", "trans_y", "trans_z"]]
-    mc_path = op.join(test_path, "mc.tsv")
+    mc_path = op.join(test_path, "mc.txt")
     mc.to_csv(mc_path, sep="\t", index=False, header=None)
 
     # Get path to mel_mix file
