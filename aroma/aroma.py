@@ -6,6 +6,8 @@ import os.path as op
 import shutil
 
 import nibabel as nib
+import numpy as np
+from nilearn import masking
 
 from aroma import utils, features, _version
 
@@ -188,39 +190,25 @@ def aroma_workflow(
     # Define/create mask. Either by making a copy of the specified mask, or by
     # creating a new one.
     new_mask = op.join(out_dir, "mask.nii.gz")
-    if mask:
-        shutil.copyfile(mask, new_mask)
-    elif in_feat and op.isfile(op.join(in_feat, "example_func.nii.gz")):
-        # If a Feat directory is specified, and an example_func is present use
-        # example_func to create a mask
-        bet_command = "{0} {1} {2} -f 0.3 -n -m -R".format(
-            op.join(fsl_dir, "bet"),
-            op.join(in_feat, "example_func.nii.gz"),
-            op.join(out_dir, "bet"),
-        )
-        os.system(bet_command)
-        os.rename(op.join(out_dir, "bet_mask.nii.gz"), new_mask)
-        if op.isfile(op.join(out_dir, "bet.nii.gz")):
-            os.remove(op.join(out_dir, "bet.nii.gz"))
-    else:
-        if in_feat:
-            LGR.warning(
-                " - No example_func was found in the Feat directory. "
-                "A mask will be created including all voxels with varying "
-                "intensity over time in the fMRI data. Please check!\n"
-            )
-        math_command = "{0} {1} -Tstd -bin {2}".format(
-            op.join(fsl_dir, "fslmaths"), in_file, new_mask
-        )
-        os.system(math_command)
+    if not mask:
+        mask = masking.compute_epi_mask(in_file)
+        mask.to_filename(new_mask)
 
     # Run ICA-AROMA
-    LGR.info("Step 1) MELODIC")
-    utils.runICA(fsl_dir, in_file, out_dir, mel_dir, new_mask, dim, TR)
+    LGR.info("Step 1) ICA")
+    components_img_z_thresh, mixing_ica, mixing_power_spectra = utils.run_ica(
+        in_file, new_mask, n_components=-1, t_r=TR
+    )
+    mel_IC = op.join(out_dir, "melodic_IC_thr.nii.gz")
+    os.mkdir(op.join(out_dir, "melodic.ica"))  # necessary until we drop MELODIC completely
+    mel_mix = op.join(out_dir, "melodic.ica", "melodic_mix")
+    mel_FT_mix = op.join(out_dir, "melodic.ica", "melodic_FTmix")
+    components_img_z_thresh.to_filename(mel_IC)
+    np.savetxt(mel_mix, mixing_ica)
+    np.savetxt(mel_FT_mix, mixing_power_spectra)
 
     LGR.info("Step 2) Automatic classification of the components")
     LGR.info("  - registering the spatial maps to MNI")
-    mel_IC = op.join(out_dir, "melodic_IC_thr.nii.gz")
     mel_IC_MNI = op.join(out_dir, "melodic_IC_thr_MNI2mm.nii.gz")
     utils.register2MNI(fsl_dir, mel_IC, mel_IC_MNI, affmat, warp)
 
@@ -228,11 +216,9 @@ def aroma_workflow(
     edge_fract, csf_fract = features.feature_spatial(mel_IC_MNI)
 
     LGR.info("  - extracting the Maximum RP correlation feature")
-    mel_mix = op.join(out_dir, "melodic.ica", "melodic_mix")
     max_RP_corr = features.feature_time_series(mel_mix, mc)
 
     LGR.info("  - extracting the High-frequency content feature")
-    mel_FT_mix = op.join(out_dir, "melodic.ica", "melodic_FTmix")
     HFC = features.feature_frequency(mel_FT_mix, TR)
 
     LGR.info("  - classification")
