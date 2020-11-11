@@ -150,7 +150,8 @@ def classification_plot(myinput, out_dir):
                     y="Edge",
                     data=df,
                     hue=df['Motion'],
-                    color=colorfalse,
+                    palette=[colortrue, colorfalse],
+                    hue_order=['True', 'False'],
                     ax=ax1,
                     s=sizemarker)
     # plot true ones on top to see how much the go over the border
