@@ -89,7 +89,7 @@ def run_command(commands, args, cwd=None, verbose=False, hide_stderr=False,
             if e.errno == errno.ENOENT:
                 continue
             if verbose:
-                LGR.info("unable to run %s" % dispcmd)
+                LGR.info("Unable to run %s" % dispcmd)
                 LGR.info(e)
             return None, None
     else:
