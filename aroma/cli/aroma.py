@@ -130,7 +130,7 @@ def _get_parser():
         "-mel_dir",
         dest="mel_dir",
         type=lambda x: is_valid_path(parser, x),
-        default="",
+        default=None,
         help=(
             "MELODIC directory name, in case MELODIC has been run previously."
         ),
