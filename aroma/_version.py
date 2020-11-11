@@ -101,7 +101,7 @@ def run_command(commands, args, cwd=None, verbose=False, hide_stderr=False,
         stdout = stdout.decode()
     if p.returncode != 0:
         if verbose:
-            LGR.info("unable to run %s (error)" % dispcmd)
+            LGR.info("Unable to run %s (error)" % dispcmd)
             LGR.info("stdout was %s" % stdout)
         return None, p.returncode
     return stdout, p.returncode
