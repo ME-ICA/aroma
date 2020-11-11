@@ -29,6 +29,7 @@ def aroma_workflow(
     debug=False,
     quiet=False
 ):
+    """Executes The main workflow."""
     # Create output directory if needed
     if op.isdir(out_dir) and not overwrite:
         LGR.info(
