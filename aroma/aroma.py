@@ -29,6 +29,26 @@ def aroma_workflow(
     debug=False,
     quiet=False
 ):
+    # Create output directory if needed
+    if op.isdir(out_dir) and not overwrite:
+        LGR.info(
+            f"Output directory {out_dir},"
+            """already exists.
+            AROMA will not continue.
+            Rerun with the -overwrite option to explicitly overwrite
+            existing output.""",
+        )
+        return
+    elif op.isdir(out_dir) and overwrite:
+        LGR.warning(
+            "Output directory {} exists and will be overwritten."
+            "\n".format(out_dir)
+        )
+        shutil.rmtree(out_dir)
+        os.makedirs(out_dir)
+    else:
+        os.makedirs(out_dir)
+
     # Create logfile name
     basename = 'aroma_'
     extension = 'tsv'
@@ -141,27 +161,6 @@ def aroma_workflow(
 
     # Define the FSL-bin directory
     fsl_dir = op.join(os.environ["FSLDIR"], "bin", "")
-
-    # Create output directory if needed
-    if op.isdir(out_dir) and not overwrite:
-        LGR.info(
-            f"Output directory {out_dir},"
-            """already exists.
-            AROMA will not continue.
-            Rerun with the -overwrite option to explicitly overwrite
-            existing output.""",
-        )
-        return
-    elif op.isdir(out_dir) and overwrite:
-        LGR.warning(
-            "Output directory {} exists and will be overwritten."
-            "\n".format(out_dir)
-        )
-        shutil.rmtree(out_dir)
-        os.makedirs(out_dir)
-    else:
-        os.makedirs(out_dir)
-
     # Get TR of the fMRI data, if not specified
     if not TR:
         in_img = nib.load(in_file)
