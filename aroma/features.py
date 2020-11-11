@@ -22,7 +22,7 @@ def feature_time_series(mel_mix, mc):
     mel_mix : str
         Full path of the melodic_mix text file.
         Stored array is (time x component).
-    mc : str
+    mc : str or array_like
         Full path of the text file containing the realignment parameters.
         Motion parameters are (time x 6), with the first three columns being
         rotation parameters (in radians) and the final three being translation
