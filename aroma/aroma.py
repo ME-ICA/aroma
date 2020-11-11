@@ -29,7 +29,12 @@ def aroma_workflow(
     debug=False,
     quiet=False
 ):
-    """Execute The main workflow."""
+    """Run the AROMA workflow.
+
+    Parameters
+    ----------
+    in_feat
+    """
     # Create output directory if needed
     if op.isdir(out_dir) and not overwrite:
         LGR.info(
@@ -81,16 +86,6 @@ def aroma_workflow(
                             format='%(levelname)-10s %(message)s')
     version_number = _version.get_versions()['version']
     LGR.info(f'Currently running ICA-AROMA version {version_number}')
-    """Run the AROMA workflow.
-
-    Parameters
-    ----------
-    in_feat
-    """
-    LGR.info("\n------------------------ "
-             "RUNNING ICA-AROMA ------------------------")
-    LGR.info("-------- "
-             "'ICA-based Automatic Removal Of Motion Artifacts' --------\n")
     if in_feat and in_file:
         raise ValueError("Only one of 'in_feat' "
                          "and 'in_file' may be provided.")
