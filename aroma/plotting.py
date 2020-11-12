@@ -7,7 +7,6 @@ import pandas as pd
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from matplotlib import gridspec
 import seaborn as sns
 import matplotlib.image as mpimg
 
@@ -110,8 +109,6 @@ def classification_plot(myinput, out_dir):
     # create figure
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=[12, 4])
 
-    # define grids
-
     # define subplots
     # Edge/RP
 
@@ -151,33 +148,6 @@ def classification_plot(myinput, out_dir):
     ax1.imshow(aux_img)
     ax1.axis('off')
     fig.tight_layout()
-    # ax1.tick_params(axis='both', labelsize=12)
-
-    # plot distributions
-    # RP
-    # sns.histplot(df.loc[df['Motion'] == "True", "RP"],
-    #              ax=ax1t,
-    #              color=colortrue,
-    #              )
-    # sns.histplot(df.loc[df['Motion'] == "False", "RP"],
-    #              ax=ax1t,
-    #              color=colorfalse,
-    #              )
-    # ax1t.set_xlim([0, 1])
-
-    # # Edge
-    # sns.histplot(df.loc[df['Motion'] == "True", "Edge"],
-    #              ax=ax1r,
-    #              color=colortrue,
-    #              kde_kws={'alpha': 0.2}
-    #              )
-    # sns.histplot(df.loc[df['Motion'] == "False", "Edge"],
-    #              ax=ax1r,
-    #              color=colorfalse,
-    #              )
-    # ax1r.set_ylim([0, 1])
-
-    # cosmetics
 
     # bring tickmarks back
     for myax in fig.get_axes():
