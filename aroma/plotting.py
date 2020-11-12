@@ -9,6 +9,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import seaborn as sns
+import matplotlib.image as mpimg
 
 mpl.use('Agg')
 LGR = logging.getLogger(__name__)
@@ -83,7 +84,29 @@ def classification_plot(myinput, out_dir):
     sns.set_style('white')
     colortrue = "#FFBF17"
     colorfalse = "#69A00A"
-
+    # plot Edge/RP relationship
+    # obtain projection line
+    hyp = np.array([-19.9751070082159, 9.95127547670627, 24.8333160239175])
+    a = -hyp[1] / hyp[2]
+    xx = np.linspace(0, 1)
+    yy = a * xx - hyp[0] / hyp[2]
+    # create aux figure
+    h = sns.jointplot(x="RP",
+                      y="Edge",
+                      data=df,
+                      hue=df['Motion'],
+                      kind='scatter',
+                      palette=[colortrue, colorfalse],
+                      hue_order=['True', 'False'],
+                      xlim=[0, 1],
+                      ylim=[0, 1])
+    h.set_axis_labels('Maximum RP Correlation', 'Edge Fraction', fontsize=14, labelpad=10)
+    h.ax_joint.set_xticks(np.arange(0, 1.2, 0.2))
+    h.ax_joint.set_yticks(np.arange(0, 1.2, 0.2))
+    h.ax_joint.tick_params(axis='both', labelsize=12)
+    h.ax_joint.plot(xx, yy, '.', color="k", markersize=1)
+    h.savefig(os.path.join(out_dir, 'aux_fig.png'),
+              bbox_inches='tight', dpi=300)
     # create figure
     fig = plt.figure(figsize=[12, 4])
 
@@ -137,58 +160,34 @@ def classification_plot(myinput, out_dir):
 
     # plot Edge/RP relationship
     # obtain projection line
-    hyp = np.array([-19.9751070082159, 9.95127547670627, 24.8333160239175])
-    a = -hyp[1] / hyp[2]
-    xx = np.linspace(0, 1)
-    yy = a * xx - hyp[0] / hyp[2]
-    # plot scatter and line
-    if len(df) > 100:
-        sizemarker = 6
-    else:
-        sizemarker = 10
-    sns.scatterplot(x="RP",
-                    y="Edge",
-                    data=df,
-                    hue=df['Motion'],
-                    palette=[colortrue, colorfalse],
-                    hue_order=['True', 'False'],
-                    ax=ax1,
-                    s=sizemarker)
-    # add decision boundary
-    ax1.plot(xx, yy, '.', color="k", markersize=1)
-    # styling
-    ax1.set_ylim([0, 1])
-    ax1.set_xlim([0, 1])
-    ax1.set_xlabel('Maximum RP Correlation', fontsize=14, labelpad=10)
-    ax1.set_ylabel('Edge Fraction', fontsize=14)
-    ax1.set_xticks(np.arange(0, 1.2, 0.2))
-    ax1.set_yticks(np.arange(0, 1.2, 0.2))
-    ax1.tick_params(axis='both', labelsize=12)
+    aux_img = mpimg.imread(os.path.join(out_dir, 'aux_fig.png'))
+    ax1.imshow(aux_img)
+    ax1.axis('off')
+    # ax1.tick_params(axis='both', labelsize=12)
 
     # plot distributions
     # RP
-    sns.distplot(df.loc[df['Motion'] == "True", "RP"],
-                 ax=ax1t,
-                 color=colortrue,
-                 hist_kws={'alpha': 0.2})
-    sns.distplot(df.loc[df['Motion'] == "False", "RP"],
-                 ax=ax1t,
-                 color=colorfalse,
-                 hist_kws={'alpha': 0.2})
-    ax1t.set_xlim([0, 1])
+    # sns.histplot(df.loc[df['Motion'] == "True", "RP"],
+    #              ax=ax1t,
+    #              color=colortrue,
+    #              )
+    # sns.histplot(df.loc[df['Motion'] == "False", "RP"],
+    #              ax=ax1t,
+    #              color=colorfalse,
+    #              )
+    # ax1t.set_xlim([0, 1])
 
-    # Edge
-    sns.distplot(df.loc[df['Motion'] == "True", "Edge"],
-                 ax=ax1r,
-                 vertical=True,
-                 color=colortrue,
-                 hist_kws={'alpha': 0.2})
-    sns.distplot(df.loc[df['Motion'] == "False", "Edge"],
-                 ax=ax1r,
-                 vertical=True,
-                 color=colorfalse,
-                 hist_kws={'alpha': 0.2})
-    ax1r.set_ylim([0, 1])
+    # # Edge
+    # sns.histplot(df.loc[df['Motion'] == "True", "Edge"],
+    #              ax=ax1r,
+    #              color=colortrue,
+    #              kde_kws={'alpha': 0.2}
+    #              )
+    # sns.histplot(df.loc[df['Motion'] == "False", "Edge"],
+    #              ax=ax1r,
+    #              color=colorfalse,
+    #              )
+    # ax1r.set_ylim([0, 1])
 
     # cosmetics
     for myax in [ax1t, ax1r]:
