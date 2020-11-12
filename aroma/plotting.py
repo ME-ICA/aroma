@@ -108,25 +108,12 @@ def classification_plot(myinput, out_dir):
     h.savefig(os.path.join(out_dir, 'aux_fig.png'),
               bbox_inches='tight', dpi=300)
     # create figure
-    fig = plt.figure(figsize=[12, 4])
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=[12, 4])
 
     # define grids
-    gs = gridspec.GridSpec(4, 7, wspace=1)
-    gs00 = gridspec.GridSpecFromSubplotSpec(4, 4, subplot_spec=gs[:, 0:3])
-    gs01 = gridspec.GridSpecFromSubplotSpec(4, 1, subplot_spec=gs[:, 3:5])
-    gs02 = gridspec.GridSpecFromSubplotSpec(4, 1, subplot_spec=gs[:, 5:7])
 
     # define subplots
     # Edge/RP
-    ax1 = fig.add_subplot(gs00[1:4, 0:3])
-    # distribution edge (ax1 top)
-    ax1t = fig.add_subplot(gs00[0, 0:3])
-    # distribution RP (ax1 right)
-    ax1r = fig.add_subplot(gs00[1:4, 3])
-    # Freq
-    ax2 = fig.add_subplot(gs01[1:4, :])
-    # CSF
-    ax3 = fig.add_subplot(gs02[1:4, :])
 
     # plot Freq
     sns.boxplot(x="Motion",
@@ -163,6 +150,7 @@ def classification_plot(myinput, out_dir):
     aux_img = mpimg.imread(os.path.join(out_dir, 'aux_fig.png'))
     ax1.imshow(aux_img)
     ax1.axis('off')
+    fig.tight_layout()
     # ax1.tick_params(axis='both', labelsize=12)
 
     # plot distributions
@@ -190,22 +178,13 @@ def classification_plot(myinput, out_dir):
     # ax1r.set_ylim([0, 1])
 
     # cosmetics
-    for myax in [ax1t, ax1r]:
-        myax.set_xticks([])
-        myax.set_yticks([])
-        myax.set_xlabel('')
-        myax.set_ylabel('')
-        myax.spines['right'].set_visible(False)
-        myax.spines['top'].set_visible(False)
-        myax.spines['bottom'].set_visible(False)
-        myax.spines['left'].set_visible(False)
 
     # bring tickmarks back
     for myax in fig.get_axes():
         myax.tick_params(which="major", direction='in', length=3)
 
     # add figure title
-    plt.suptitle('Component Assessment', fontsize=20)
+    fig.suptitle('Component Assessment', fontsize=20, y=1.08)
 
     # outtakes
     plt.savefig(os.path.join(out_dir, 'ICA_AROMA_component_assessment.svg'),
