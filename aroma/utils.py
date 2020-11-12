@@ -41,24 +41,27 @@ def runICA(fsl_dir, in_file, out_dir, mel_dir_in, mask, dim, TR):
                            melodic.ica/stats/
     """
     # Define the 'new' MELODIC directory and predefine some associated files
-    mel_dir = op.join(out_dir, 'melodic.ica')
-    mel_IC = op.join(mel_dir, 'melodic_IC.nii.gz')
-    mel_IC_mix = op.join(mel_dir, 'melodic_mix')
-    mel_IC_thr = op.join(out_dir, 'melodic_IC_thr.nii.gz')
+    mel_dir = op.join(out_dir, "melodic.ica")
+    mel_IC = op.join(mel_dir, "melodic_IC.nii.gz")
+    mel_IC_mix = op.join(mel_dir, "melodic_mix")
+    mel_IC_thr = op.join(out_dir, "melodic_IC_thr.nii.gz")
 
     # When a MELODIC directory is specified,
     # check whether all needed files are present.
     # Otherwise... run MELODIC again
-    if (mel_dir_in and op.isfile(op.join(mel_dir_in, 'melodic_IC.nii.gz'))
-            and op.isfile(op.join(mel_dir_in, 'melodic_FTmix'))
-            and op.isfile(op.join(mel_dir_in, 'melodic_mix'))):
+    if (
+        mel_dir_in
+        and op.isfile(op.join(mel_dir_in, "melodic_IC.nii.gz"))
+        and op.isfile(op.join(mel_dir_in, "melodic_FTmix"))
+        and op.isfile(op.join(mel_dir_in, "melodic_mix"))
+    ):
         LGR.info('  - The existing/specified MELODIC directory will be used.')
 
         # If a 'stats' directory is present (contains thresholded spatial maps)
         # create a symbolic link to the MELODIC directory.
         # Otherwise create specific links and
         # run mixture modeling to obtain thresholded maps.
-        if op.isdir(op.join(mel_dir_in, 'stats')):
+        if op.isdir(op.join(mel_dir_in, "stats")):
             os.symlink(mel_dir_in, mel_dir)
         else:
             LGR.warning("  - The MELODIC directory does not contain the "
@@ -69,8 +72,7 @@ def runICA(fsl_dir, in_file, out_dir, mel_dir_in, mask, dim, TR):
             # directory
             os.makedirs(mel_dir)
             for item in os.listdir(mel_dir_in):
-                os.symlink(op.join(mel_dir_in, item),
-                           op.join(mel_dir, item))
+                os.symlink(op.join(mel_dir_in, item), op.join(mel_dir, item))
 
             # Run mixture modeling
             melodic_command = ("{0} --in={1} --ICs={1} --mix={2} "
@@ -95,16 +97,11 @@ def runICA(fsl_dir, in_file, out_dir, mel_dir_in, mask, dim, TR):
                             'MELODIC will be run separately.')
 
         # Run MELODIC
-        melodic_command = ("{0} --in={1} --outdir={2} --mask={3} --dim={4} "
-                           "--Ostats --nobet --mmthresh=0.5 --report "
-                           "--tr={5}").format(
-                               op.join(fsl_dir, 'melodic'),
-                               in_file,
-                               mel_dir,
-                               mask,
-                               dim,
-                               TR
-                           )
+        melodic_command = (
+            "{0} --in={1} --outdir={2} --mask={3} --dim={4} "
+            "--Ostats --nobet --mmthresh=0.5 --report "
+            "--tr={5}"
+        ).format(op.join(fsl_dir, "melodic"), in_file, mel_dir, mask, dim, TR)
         os.system(melodic_command)
 
     # Get number of components
@@ -176,8 +173,8 @@ def register2MNI(fsl_dir, in_file, out_file, affmat, warp):
                                   MNI152 2mm
     """
     # Define the MNI152 T1 2mm template
-    fslnobin = fsl_dir.rsplit('/', 2)[0]
-    ref = op.join(fslnobin, 'data', 'standard', 'MNI152_T1_2mm_brain.nii.gz')
+    fslnobin = fsl_dir.rsplit("/", 2)[0]
+    ref = op.join(fslnobin, "data", "standard", "MNI152_T1_2mm_brain.nii.gz")
 
     # If the no affmat- or warp-file has been specified, assume that the data
     # is already in MNI152 space. In that case only check if resampling to
@@ -190,11 +187,17 @@ def register2MNI(fsl_dir, in_file, out_file, affmat, warp):
         # If voxel size is not 2mm isotropic, resample the data, otherwise
         # copy the file
         if (pixdim1 != 2) or (pixdim2 != 2) or (pixdim3 != 2):
-            os.system(' '.join([op.join(fsl_dir, 'flirt'),
-                                ' -ref ' + ref,
-                                ' -in ' + in_file,
-                                ' -out ' + out_file,
-                                ' -applyisoxfm 2 -interp trilinear']))
+            os.system(
+                " ".join(
+                    [
+                        op.join(fsl_dir, "flirt"),
+                        " -ref " + ref,
+                        " -in " + in_file,
+                        " -out " + out_file,
+                        " -applyisoxfm 2 -interp trilinear",
+                    ]
+                )
+            )
         else:
             os.copyfile(in_file, out_file)
 
@@ -203,33 +206,51 @@ def register2MNI(fsl_dir, in_file, out_file, affmat, warp):
     # without a affmat
     elif not affmat and warp:
         # Apply warp
-        os.system(' '.join([op.join(fsl_dir, 'applywarp'),
-                            '--ref=' + ref,
-                            '--in=' + in_file,
-                            '--out=' + out_file,
-                            '--warp=' + warp,
-                            '--interp=trilinear']))
+        os.system(
+            " ".join(
+                [
+                    op.join(fsl_dir, "applywarp"),
+                    "--ref=" + ref,
+                    "--in=" + in_file,
+                    "--out=" + out_file,
+                    "--warp=" + warp,
+                    "--interp=trilinear",
+                ]
+            )
+        )
 
     # If only a affmat-file has been specified perform affine registration to
     # MNI
     elif affmat and not warp:
-        os.system(' '.join([op.join(fsl_dir, 'flirt'),
-                            '-ref ' + ref,
-                            '-in ' + in_file,
-                            '-out ' + out_file,
-                            '-applyxfm -init ' + affmat,
-                            '-interp trilinear']))
+        os.system(
+            " ".join(
+                [
+                    op.join(fsl_dir, "flirt"),
+                    "-ref " + ref,
+                    "-in " + in_file,
+                    "-out " + out_file,
+                    "-applyxfm -init " + affmat,
+                    "-interp trilinear",
+                ]
+            )
+        )
 
     # If both a affmat- and warp-file have been defined, apply the warping
     # accordingly
     else:
-        os.system(' '.join([op.join(fsl_dir, 'applywarp'),
-                            '--ref=' + ref,
-                            '--in=' + in_file,
-                            '--out=' + out_file,
-                            '--warp=' + warp,
-                            '--premat=' + affmat,
-                            '--interp=trilinear']))
+        os.system(
+            " ".join(
+                [
+                    op.join(fsl_dir, "applywarp"),
+                    "--ref=" + ref,
+                    "--in=" + in_file,
+                    "--out=" + out_file,
+                    "--warp=" + warp,
+                    "--premat=" + affmat,
+                    "--interp=trilinear",
+                ]
+            )
+        )
 
 
 def cross_correlation(a, b):
@@ -254,7 +275,7 @@ def cross_correlation(a, b):
     return np.corrcoef(a.T, b.T)[:ncols_a, ncols_a:]
 
 
-def classification(out_dir, max_RP_corr, edge_fract, HFC, csf_fract):
+def classification(features_df, out_dir):
     """Classify components as motion or non-motion based on four features.
 
     The four features used for classification are: maximum RP correlation,
@@ -262,16 +283,11 @@ def classification(out_dir, max_RP_corr, edge_fract, HFC, csf_fract):
 
     Parameters
     ----------
+    features_df : (C x 4) pandas.DataFrame
+        DataFrame with the following columns:
+        "edge_fract", "csf_fract", "max_RP_corr", and "HFC".
     out_dir : str
         Full path of the output directory
-    max_RP_corr : (C,) array_like
-        Array of the 'maximum RP correlation' feature scores of the components
-    edge_fract : (C,) array_like
-        Array of the 'edge fraction' feature scores of the components
-    HFC : (C,) array_like
-        Array of the 'high-frequency content' feature scores of the components
-    csf_fract : (C,) array_like
-        Array of the 'CSF fraction' feature scores of the components
 
     Returns
     -------
@@ -284,62 +300,44 @@ def classification(out_dir, max_RP_corr, edge_fract, HFC, csf_fract):
     classified_motion_ICs.txt : A text file containing the indices of the
                                 components identified as motion components
     """
+    # Put the feature scores in a text file
+    features_df.to_csv(op.join(out_dir, "feature_scores.tsv"), sep="\t", index=False)
+
     # Classify the ICs as motion or non-motion
 
     # Define criteria needed for classification (thresholds and
     # hyperplane-parameters)
-    thr_csf = 0.10
-    thr_HFC = 0.35
-    hyp = np.array([-19.9751070082159, 9.95127547670627, 24.8333160239175])
+    THR_CSF = 0.10
+    THR_HFC = 0.35
+    HYPERPLANE = np.array([-19.9751070082159, 9.95127547670627, 24.8333160239175])
 
     # Project edge & max_RP_corr feature scores to new 1D space
-    x = np.array([max_RP_corr, edge_fract])
-    proj = hyp[0] + np.dot(x.T, hyp[1:])
+    x = features_df[["max_RP_corr", "edge_fract"]].values
+    proj = HYPERPLANE[0] + np.dot(x.T, HYPERPLANE[1:])
 
     # Classify the ICs
-    motion_ICs = np.squeeze(
-        np.array(
-            np.where(
-                (proj > 0)
-                + (csf_fract > thr_csf)
-                + (HFC > thr_HFC)
-            )
-        )
+    is_motion = (
+        (features_df["csf_fract"] > THR_CSF)
+        | (features_df["HFC"] > THR_HFC)
+        | (proj > 0)
+    )
+    features_df["classification"] = is_motion
+    features_df["classification"] = features_df["classification"].map(
+        {True: "rejected", False: "accepted"}
     )
 
-    # Put the feature scores in a text file
-    np.savetxt(op.join(out_dir, 'feature_scores.txt'),
-               np.vstack((max_RP_corr, edge_fract, HFC, csf_fract)).T)
-
-    # Put the indices of motion-classified ICs in a text file
-    with open(op.join(out_dir, 'classified_motion_ICs.txt'), 'w') as fo:
-        if motion_ICs.size > 1:
-            fo.write(','.join(['{:.0f}'.format(num) for num in
-                               (motion_ICs + 1)]))
-        elif motion_ICs.size == 1:
-            fo.write('{:.0f}'.format(motion_ICs + 1))
+    # Put the indices of motion-classified ICs in a text file (starting with 1)
+    motion_ICs = features_df[
+        "classification", features_df["classification"] == "rejected"
+    ].index.values
+    with open(op.join(out_dir, "classified_motion_ICs.txt"), "w") as fo:
+        out_str = ",".join(motion_ICs.astype(str))
+        fo.write(out_str)
 
     # Create a summary overview of the classification
-    with open(op.join(out_dir, 'classification_overview.txt'), 'w') as fo:
-        fo.write('\t'.join(['IC',
-                            'Motion/noise',
-                            'maximum RP correlation',
-                            'Edge-fraction',
-                            'High-frequency content',
-                            'CSF-fraction']))
-        fo.write('\n')
-        for i in range(0, len(csf_fract)):
-            if (proj[i] > 0) or (csf_fract[i] > thr_csf) or (HFC[i] > thr_HFC):
-                classif = "True"
-            else:
-                classif = "False"
-            fo.write('\t'.join(['{:d}'.format(i + 1),
-                                classif,
-                                '{:.2f}'.format(max_RP_corr[i]),
-                                '{:.2f}'.format(edge_fract[i]),
-                                '{:.2f}'.format(HFC[i]),
-                                '{:.2f}'.format(csf_fract[i])]))
-            fo.write('\n')
+    features_df.to_csv(
+        op.join(out_dir, "classification_overview.txt"), sep="\t", index_label="IC"
+    )
 
     return motion_ICs
 
