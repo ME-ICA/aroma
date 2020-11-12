@@ -153,7 +153,7 @@ def feature_frequency(mel_FT_mix, TR):
     return HFC
 
 
-def feature_spatial(mel_IC, masks):
+def feature_spatial(*, z_maps, csf_mask, edge_mask, brain_mask):
     """Extract the spatial feature scores.
 
     For each IC it determines the fraction of the mixture modeled thresholded

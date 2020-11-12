@@ -193,7 +193,9 @@ def aroma_workflow(
 
     # Run ICA-AROMA
     LGR.info("Step 1) MELODIC")
-    component_maps, mixing, mixing_FT = utils.runICA(fsl_dir, in_file, out_dir, mel_dir, masks["brain"], dim, TR)
+    component_maps, mixing, mixing_FT = utils.runICA(
+        fsl_dir, in_file, out_dir, mel_dir, masks["brain"], dim, TR
+    )
 
     LGR.info("Step 2) Automatic classification of the components")
     LGR.info("  - registering the spatial maps to MNI")
