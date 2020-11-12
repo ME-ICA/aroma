@@ -61,8 +61,10 @@ def test_integration(skip_integration, nilearn_data):
     classification_overview = pd.read_csv(
         join(out_path, "classification_overview.txt"), sep="\t", index_col="IC", nrows=4
     )
-    
-    assert np.allclose(true_classification_overview.iloc[:, :-1].values,classification_overview.iloc[:, :-1].values,atol=0.9)
+
+    assert np.allclose(true_classification_overview.iloc[:, :-1].values,
+                       classification_overview.iloc[:, :-1].values,
+                       atol=0.9)
 
     #  Check feature scores
     f_scores = pd.read_csv(join(out_path, "feature_scores.txt"), sep="\t")
