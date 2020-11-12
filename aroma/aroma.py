@@ -30,6 +30,7 @@ def aroma_workflow(
     debug=False,
     quiet=False,
     csf=None,
+    brain=None,
 ):
     """Run the AROMA workflow.
 
@@ -189,12 +190,14 @@ def aroma_workflow(
 
     # Define/create mask. Either by making a copy of the specified mask, or by
     # creating a new one.
-    masks = utils.derive_masks(in_file, csf=csf)
+    brain_img, csf_img, out_img, edge_img = utils.load_masks(
+        in_file, csf=csf, brain=brain
+    )
 
     # Run ICA-AROMA
     LGR.info("Step 1) MELODIC")
     component_maps, mixing, mixing_FT = utils.runICA(
-        fsl_dir, in_file, out_dir, mel_dir, masks["brain"], dim, TR
+        fsl_dir, in_file, out_dir, mel_dir, brain_img, dim, TR
     )
 
     LGR.info("Step 2) Automatic classification of the components")
@@ -205,7 +208,7 @@ def aroma_workflow(
     LGR.info("  - extracting the CSF & Edge fraction features")
     features_df = pd.DataFrame()
     features_df["edge_fract"], features_df["csf_fract"] = features.feature_spatial(
-        mel_IC_MNI, masks
+        mel_IC_MNI, csf_img, brain_img, edge_img, out_img
     )
 
     LGR.info("  - extracting the Maximum RP correlation feature")

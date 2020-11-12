@@ -153,7 +153,7 @@ def feature_frequency(mel_FT_mix, TR):
     return HFC
 
 
-def feature_spatial(*, z_maps, csf_mask, edge_mask, brain_mask):
+def feature_spatial(*, z_maps, csf_mask, edge_mask, brain_mask, out_mask):
     """Extract the spatial feature scores.
 
     For each IC it determines the fraction of the mixture modeled thresholded
@@ -179,7 +179,7 @@ def feature_spatial(*, z_maps, csf_mask, edge_mask, brain_mask):
         mel_IC file
     """
     # Get the number of ICs
-    mel_IC_img = nib.load(mel_IC)
+    mel_IC_img = nib.load(z_maps)
     num_ICs = mel_IC_img.shape[3]
 
     # Loop over ICs
@@ -187,7 +187,7 @@ def feature_spatial(*, z_maps, csf_mask, edge_mask, brain_mask):
     csf_fract = np.zeros(num_ICs)
     for i in range(num_ICs):
         # Extract IC from the merged melodic_IC_thr2MNI2mm file
-        temp_IC = image.index_img(mel_IC, i)
+        temp_IC = image.index_img(mel_IC_img, i)
 
         # Change to absolute Z-values
         temp_IC = image.math_img("np.abs(img)", img=temp_IC)
@@ -203,17 +203,17 @@ def feature_spatial(*, z_maps, csf_mask, edge_mask, brain_mask):
 
         # Get sum of Z-values of the voxels located within the CSF
         # (calculate via the mean and number of non-zero voxels)
-        csf_data = masking.apply_mask(temp_IC, masks["csf"])
+        csf_data = masking.apply_mask(temp_IC, csf_mask)
         csf_sum = np.sum(csf_data)
 
         # Get sum of Z-values of the voxels located within the Edge
         # (calculate via the mean and number of non-zero voxels)
-        edge_data = masking.apply_mask(temp_IC, masks["edge"])
+        edge_data = masking.apply_mask(temp_IC, edge_mask)
         edge_sum = np.sum(edge_data)
 
         # Get sum of Z-values of the voxels located outside the brain
         # (calculate via the mean and number of non-zero voxels)
-        out_data = masking.apply_mask(temp_IC, masks["out"])
+        out_data = masking.apply_mask(temp_IC, out_mask)
         out_sum = np.sum(out_data)
 
         # Determine edge and CSF fraction
