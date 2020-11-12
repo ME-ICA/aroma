@@ -5,8 +5,8 @@ import os
 import os.path as op
 import shutil
 
-import nibabel as nib
 import pandas as pd
+from nilearn._utils import load_niimg
 
 from aroma import utils, features, _version
 
@@ -170,7 +170,7 @@ def aroma_workflow(
     fsl_dir = op.join(os.environ["FSLDIR"], "bin", "")
     # Get TR of the fMRI data, if not specified
     if not TR:
-        in_img = nib.load(in_file)
+        in_img = load_niimg(in_file)
         TR = in_img.header.get_zooms()[3]
 
     # Check TR

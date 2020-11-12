@@ -8,6 +8,7 @@ from tempfile import mkstemp
 import nibabel as nib
 import numpy as np
 from nilearn import image, masking
+from nilearn._utils import load_niimg
 from scipy import ndimage
 
 LGR = logging.getLogger(__name__)
@@ -66,7 +67,7 @@ def derive_native_masks(in_file, csf, brain):
         Dictionary with the different masks as img_like objects.
     """
     out_img = image.math_img("1 - mask", mask=brain)
-    csf_img = nib.load(csf)
+    csf_img = load_niimg(csf)
     csf_data = csf_img.get_fdata()
     if len(np.unique(csf_data)) == 2:
         LGR.info("CSF mask provided. Inferring other masks.")
@@ -189,7 +190,7 @@ def runICA(fsl_dir, in_file, out_dir, mel_dir_in, mask, dim, TR):
         os.system(melodic_command)
 
     # Get number of components
-    mel_IC_img = nib.load(mel_IC)
+    mel_IC_img = load_niimg(mel_IC)
     nr_ICs = mel_IC_img.shape[3]
 
     # Merge mixture modeled thresholded spatial maps. Note! In case that
@@ -202,7 +203,7 @@ def runICA(fsl_dir, in_file, out_dir, mel_dir_in, mask, dim, TR):
         z_temp = op.join(mel_dir, "stats", "thresh_zstat{0}.nii.gz".format(i))
 
         # Get number of volumes in component's thresholded image
-        z_temp_img = nib.load(z_temp)
+        z_temp_img = load_niimg(z_temp)
         if z_temp_img.ndim == 4:
             len_IC = z_temp_img.shape[3]
             # Extract last spatial map within the thresh_zstat file
@@ -349,7 +350,7 @@ def denoising(fsl_dir, in_file, out_dir, mixing, den_type, den_idx):
         motion_components = mixing[:, den_idx]
 
         # Create a fake mask to make it easier to reshape the full data to 2D
-        img = nib.load(in_file)
+        img = load_niimg(in_file)
         full_mask = nib.Nifti1Image(np.ones(img.shape[:3], int), img.affine)
         data = masking.apply_mask(img, full_mask)  # T x S
 

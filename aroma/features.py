@@ -1,9 +1,9 @@
 """Functions to calculate ICA-AROMA features for component classification."""
 import logging
 
-import nibabel as nib
 import numpy as np
 from nilearn import image, masking
+from nilearn._utils import load_niimg
 
 from .utils import cross_correlation
 
@@ -179,7 +179,7 @@ def feature_spatial(*, z_maps, csf_mask, edge_mask, brain_mask, out_mask):
         mel_IC file
     """
     # Get the number of ICs
-    mel_IC_img = nib.load(z_maps)
+    mel_IC_img = load_niimg(z_maps)
     num_ICs = mel_IC_img.shape[3]
 
     # Loop over ICs
