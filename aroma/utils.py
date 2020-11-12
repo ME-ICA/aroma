@@ -301,7 +301,7 @@ def classification(features_df, out_dir):
                                 components identified as motion components
     """
     # Put the feature scores in a text file
-    features_df.to_csv(op.join(out_dir, "feature_scores.tsv"), sep="\t", index=False)
+    features_df.to_csv(op.join(out_dir, "feature_scores.txt"), sep="\t", index=False)
 
     # Classify the ICs as motion or non-motion
 
