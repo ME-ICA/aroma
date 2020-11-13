@@ -48,7 +48,7 @@ def test_integration(skip_integration, nilearn_data):
     assert isfile(join(out_path, "classification_overview.txt"))
     assert isfile(join(out_path, "classified_motion_ICs.txt"))
     assert isfile(join(out_path, "denoised_func_data_nonaggr.nii.gz"))
-    assert isfile(join(out_path, "feature_scores.txt"))
+    assert isfile(join(out_path, "feature_scores.tsv"))
     assert isfile(join(out_path, "mask.nii.gz"))
     assert isfile(join(out_path, "melodic_IC_thr.nii.gz"))
     assert isfile(join(out_path, "melodic_IC_thr_MNI2mm.nii.gz"))
@@ -67,8 +67,8 @@ def test_integration(skip_integration, nilearn_data):
                        atol=0.9)
 
     #  Check feature scores
-    f_scores = pd.read_csv(join(out_path, "feature_scores.txt"), sep="\t")
-    f_true = pd.read_csv(join(resources_path, "feature_scores.txt"), sep="\t")
+    f_scores = pd.read_table(join(out_path, "feature_scores.tsv"))
+    f_true = pd.read_table(join(resources_path, "feature_scores.txt"))
     assert np.allclose(f_true.values, f_scores.values, atol=0.9)
 
     # Check motion ICs
