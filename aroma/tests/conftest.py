@@ -1,4 +1,3 @@
-import os
 import pytest
 
 from nilearn.datasets import fetch_development_fmri
