@@ -6,8 +6,8 @@ import pandas as pd
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import seaborn as sns
 import matplotlib.image as mpimg
+import pip
 
 mpl.use('Agg')
 LGR = logging.getLogger(__name__)
@@ -23,6 +23,14 @@ def classification_plot(in_file, out_dir):
     out_dir : str
         Output directory.
     """
+    try:
+        package = 'seaborn'
+        __import__(package)
+    except ImportError:
+        pip.main(['install', package])
+        LGR.warning('Seaborn is needed for plotting, isntalling')
+     
+    import seaborn as sns
     assert isinstance(in_file, str)
     df = pd.read_table(in_file)
     motion_components_df = df.loc[df["classification"] == "rejected"]
