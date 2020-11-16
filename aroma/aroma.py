@@ -36,6 +36,7 @@ def aroma_workflow(
     ----------
     in_feat
     """
+    out_dir = os.path.abspath(out_dir)
     # Create output directory if needed
     if op.isdir(out_dir) and not overwrite:
         LGR.info(
