@@ -27,8 +27,8 @@ def classification_plot(in_file, out_dir):
         package = 'seaborn'
         __import__(package)
     except ImportError:
-        pip.main(['install', package])
         LGR.warning('Seaborn is needed for plotting, isntalling')
+        pip.main(['install', package])
 
     import seaborn as sns
     assert isinstance(in_file, str)
