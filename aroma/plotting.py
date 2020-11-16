@@ -32,13 +32,13 @@ def classification_plot(in_file, out_dir):
 
     import seaborn as sns
     assert isinstance(in_file, str)
-    df = pd.read_table(in_file)
+    df = pd.read_csv(in_file, sep="\t", index_col="IC")
     motion_components_df = df.loc[df["classification"] == "rejected"]
 
     # get counts
     n_components = df.shape[0]
     n_motion_components = motion_components_df.shape[0]
-    LGR.info(f'Found {n_motion_components} head motion-related components in a total of',
+    LGR.info(f'Found {n_motion_components} head motion-related components in a total of'
              f'{n_components} components.')
 
     # add dummy components if needed, this is just for making the plots look nice
@@ -76,6 +76,7 @@ def classification_plot(in_file, out_dir):
             "csf_fract": "CSF",
         }
     )
+    breakpoint()
     df["classification"] = df["classification"].map(
         {"rejected": "True", "accepted": "False"}
     )
