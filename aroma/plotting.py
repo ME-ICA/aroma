@@ -38,8 +38,8 @@ def classification_plot(in_file, out_dir):
     # get counts
     n_components = df.shape[0]
     n_motion_components = motion_components_df.shape[0]
-    LGR.info('Found', n_motion_components, 'head motion-related components in a total of',
-             n_components, 'components.')
+    LGR.info(f'Found {n_motion_components} head motion-related components in a total of',
+             f'{n_components} components.')
 
     # add dummy components if needed, this is just for making the plots look nice
     if n_motion_components < 3:
