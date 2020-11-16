@@ -29,7 +29,7 @@ def classification_plot(in_file, out_dir):
     except ImportError:
         pip.main(['install', package])
         LGR.warning('Seaborn is needed for plotting, isntalling')
-     
+
     import seaborn as sns
     assert isinstance(in_file, str)
     df = pd.read_table(in_file)
