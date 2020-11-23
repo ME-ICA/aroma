@@ -24,11 +24,12 @@ def classification_plot(in_file, out_dir):
         Output directory.
     """
     try:
-        package = 'seaborn'
+        package = "seaborn"
         __import__(package)
     except ImportError:
-        LGR.warning('Seaborn is needed for plotting, isntalling')
-        pip.main(['install', package])
+        LGR.warning("Seaborn is needed for plotting, please install it with sudo pip3 install seaborn"
+                    "Plotting won't be done")
+        return
 
     import seaborn as sns
     assert isinstance(in_file, str)
