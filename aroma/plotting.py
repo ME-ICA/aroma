@@ -7,7 +7,6 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
-import pip
 
 mpl.use('Agg')
 LGR = logging.getLogger(__name__)
@@ -27,8 +26,9 @@ def classification_plot(in_file, out_dir):
         package = "seaborn"
         __import__(package)
     except ImportError:
-        LGR.warning("Seaborn is needed for plotting, please install it with sudo pip3 install seaborn"
-                    "Plotting won't be done")
+        LGR.warning("Seaborn is needed for plotting, "
+                    "please install it with sudo pip3 install seaborn.")
+        LGR.warning("Plotting won't be done")
         return
 
     import seaborn as sns
