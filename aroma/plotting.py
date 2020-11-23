@@ -25,13 +25,13 @@ def classification_plot(in_file, out_dir):
     try:
         package = "seaborn"
         __import__(package)
+        import seaborn as sns
     except ImportError:
         LGR.warning("Seaborn is needed for plotting, "
                     "please install it with sudo pip3 install seaborn.")
         LGR.warning("Plotting won't be done")
         return
 
-    import seaborn as sns
     assert isinstance(in_file, str)
     df = pd.read_csv(in_file, sep="\t", index_col="IC")
     motion_components_df = df.loc[df["classification"] == "rejected"]
