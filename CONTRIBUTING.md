@@ -12,7 +12,6 @@ Already know what you're looking for in this guide? Jump to the following sectio
 
 - [Contributing to `aroma`](#contributing-to-aroma)
   - [Joining the conversation](#joining-the-conversation)
-  - [Contributing small documentation changes](#contributing-small-documentation-changes)
   - [Contributing through GitHub](#contributing-through-github)
   - [Understanding issues, milestones and project boards](#understanding-issues-milestones-and-project-boards)
     - [Issue labels](#issue-labels)
@@ -40,16 +39,9 @@ will help you find an issue to contribute to. Thanks so much!
 ## Joining the conversation
 
 `aroma` is a young project maintained by a growing group of enthusiastic developers&mdash; and we're excited to have you join!
-Most of our discussions will take place on open [issues][link_issues].
-We also maintain a [gitter chat room][link_gitter] for more informal conversations and general project updates.
+All of our discussions will take place on open [issues][link_issues].
 
-There is significant cross-talk between these two spaces, and we look forward to hearing from you in either venue!
 As a reminder, we expect all contributions to `aroma` to adhere to our [code of conduct][link_coc].
-
-## Contributing small documentation changes
-If you are new to GitHub and just have a small documentation change
-recommendation, please submit it to [our e-mail address](mailto:aroma.devs@gmail.com)
-and one of our developers will add it to the documentation directly.
 
 ## Contributing through GitHub
 
@@ -86,15 +78,6 @@ is difficult to describe as one unit of work, please consider splitting it into 
     This helps us keep the issue tracker organized.
     Any new discussion on the issue will remove the `stale` label, and prevent it from closing.
     So, if theres's a discussion you think it not yet resolved, please jump in !
-
-* **Milestones** are the link between the issues and the high level strategy for the ``aroma`` project.
-Contributors new and old are encouraged to take a look at the milestones to see how we are progressing
-towards ``aroma``'s shared vision.
-
-    Issues are assigned to these milestones by the maintainers.
-    If you feel that an issue should be assigned to a specific milestone but the maintainers have not done so, just ask!
-    We might have just missed it, or we might not (yet) see how it aligns with the overall project structure.
-    These conversations are important to have, and we are excited to hear your perspective!
 
 ### Issue labels
 
