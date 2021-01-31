@@ -313,7 +313,7 @@ def classification(features_df, out_dir):
 
     # Project edge & max_RP_corr feature scores to new 1D space
     x = features_df[["max_RP_corr", "edge_fract"]].values
-    proj = HYPERPLANE[0] + np.dot(x.T, HYPERPLANE[1:])
+    proj = HYPERPLANE[0] + np.dot(x, HYPERPLANE[1:])
 
     # Classify the ICs
     is_motion = (
@@ -327,9 +327,8 @@ def classification(features_df, out_dir):
     )
 
     # Put the indices of motion-classified ICs in a text file (starting with 1)
-    motion_ICs = features_df[
-        "classification", features_df["classification"] == "rejected"
-    ].index.values
+    motion_ICs = features_df["classification"][features_df["classification"] == "rejected"].index
+    motion_ICs = motion_ICs.values
     with open(op.join(out_dir, "classified_motion_ICs.txt"), "w") as fo:
         out_str = ",".join(motion_ICs.astype(str))
         fo.write(out_str)

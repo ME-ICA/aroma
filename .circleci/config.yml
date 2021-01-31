@@ -176,6 +176,7 @@ jobs:
           command: |
             apt-get install -yqq make
             source activate aroma_py37  # depends on makeenv_37
+            pip install sphinx_rtd_theme
             make -C docs html
       - store_artifacts:
           path: /tmp/src/aroma/docs/_build/html
@@ -219,9 +220,9 @@ workflows:
       - style_check:
           requires:
             - makeenv_37
-      # - build_docs:
-      #     requires:
-      #       - makeenv_37
+      - build_docs:
+          requires:
+            - makeenv_37
       - merge_coverage:
           requires:
             - unittest_36
