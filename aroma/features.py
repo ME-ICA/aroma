@@ -74,7 +74,7 @@ def feature_time_series(mel_mix, mc):
     for i in range(nsplits):
         # Select a random subset of 90% of the dataset rows
         # (*without* replacement)
-        if "pytest" in sys.modules: # detects we are using pytest
+        if "pytest" in sys.modules:  # detects we are using pytest
             np.random.seed(i)
         chosen_rows = np.random.choice(a=range(nmixrows),
                                        size=nrows_to_choose,
