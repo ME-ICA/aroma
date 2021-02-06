@@ -133,7 +133,7 @@ jobs:
           name: Run integration tests
           no_output_timeout: 10m
           command: |
-            apt-get install -yqq make
+            # apt-get install -yqq make
             source activate aroma_py37  # depends on makeenv_37
             make integration
             mkdir /tmp/src/coverage
