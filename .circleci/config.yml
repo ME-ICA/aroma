@@ -110,11 +110,9 @@ jobs:
               bash "$conda_installer" -b -p /opt/miniconda-latest
               rm -f "$conda_installer"
             fi
-            if [ ! -d /opt/conda/envs/aroma_py36 ]; then
-              conda create -yq -n aroma_py36 python=3.6
-              source activate aroma_py36
-              pip install -e ".[test]"
-            fi
+            conda create -yq -n aroma_py36 python=3.6
+            source activate aroma_py36
+            pip install -e ".[test]"
       - run:
           name: Run integration tests
           no_output_timeout: 10m
