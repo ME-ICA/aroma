@@ -101,6 +101,11 @@ jobs:
           name: Generate environment
           command: |
             apt-get update
+            apt-get curl -f
+            export PATH="/opt/miniconda-latest/bin:$PATH"
+            conda_installer="/tmp/miniconda.sh"
+            curl -fsSL --retry 5 -o "$conda_installer" https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+            bash "$conda_installer" -b -p /opt/miniconda-latest
             apt-get install -yqq make
             if [ ! -d /opt/conda/envs/aroma_py36 ]; then
               conda create -yq -n aroma_py36 python=3.6
