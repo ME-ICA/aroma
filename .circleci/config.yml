@@ -91,7 +91,7 @@ jobs:
 
   integrationtest_36:
     docker:
-      - image: nipype/nipype
+      - image: bids/base_fsl
     working_directory: /tmp/src/aroma
     steps:
       - checkout
@@ -123,7 +123,7 @@ jobs:
 
   integrationtest_37:
     docker:
-      - image: nipype/nipype
+      - image: bids/base_fsl
     working_directory: /tmp/src/aroma
     steps:
       - checkout
