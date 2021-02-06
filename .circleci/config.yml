@@ -91,7 +91,7 @@ jobs:
 
   integrationtest_36:
     docker:
-      - image: bids/base_fsl
+      - image: nipype/nipype
     working_directory: /tmp/src/aroma
     steps:
       - checkout
@@ -100,24 +100,16 @@ jobs:
       - run:
           name: Generate environment
           command: |
-            apt-get update
             apt-get install -yqq make
-            if [ ! -d /opt/miniconda-latest ]; then
-              apt-get install -yqq curl
-              echo 'export PATH="/opt/miniconda-latest/bin:$PATH"' >> ~/.bashrc
-              conda_installer="/tmp/miniconda.sh"
-              curl -fsSL --retry 5 -o "$conda_installer" https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
-              bash "$conda_installer" -b -p /opt/miniconda-latest
-              rm -f "$conda_installer"
+            if [ ! -d /opt/conda/envs/aroma_py36 ]; then
+              conda create -yq -n aroma_py36 python=3.6
+              source activate aroma_py36
+              pip install -e ".[test]"
             fi
-            conda create -yq -n aroma_py36 python=3.6
-            source activate aroma_py36
-            pip install -e ".[test]"
       - run:
           name: Run integration tests
           no_output_timeout: 10m
           command: |
-            export PATH="/opt/miniconda-latest/bin:$PATH"
             source activate aroma_py36
             make integration
             mkdir /tmp/src/coverage
@@ -131,7 +123,7 @@ jobs:
 
   integrationtest_37:
     docker:
-      - image: bids/base_fsl
+      - image: nipype/nipype
     working_directory: /tmp/src/aroma
     steps:
       - checkout
