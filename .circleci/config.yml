@@ -104,7 +104,7 @@ jobs:
             apt-get install -yqq make
             if [ ! -d /opt/miniconda-latest ]; then
               apt-get install -yqq curl
-              echo 'export PATH="/opt/miniconda-latest/bin:$PATH"' >> ~/.bashrc'
+              echo 'export PATH="/opt/miniconda-latest/bin:$PATH"' >> ~/.bashrc
               conda_installer="/tmp/miniconda.sh"
               curl -fsSL --retry 5 -o "$conda_installer" https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
               bash "$conda_installer" -b -p /opt/miniconda-latest
