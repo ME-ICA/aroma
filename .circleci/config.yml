@@ -102,12 +102,14 @@ jobs:
           command: |
             apt-get update
             apt-get install -yqq make
-            apt-get install -yqq curl
-            export PATH="/opt/miniconda-latest/bin:$PATH"
-            conda_installer="/tmp/miniconda.sh"
-            curl -fsSL --retry 5 -o "$conda_installer" https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
-            bash "$conda_installer" -b -p /opt/miniconda-latest
-            rm -f "$conda_installer"
+            if [ ! -d /opt/miniconda-latest ]; then
+              apt-get install -yqq curl
+              echo 'export PATH="/opt/miniconda-latest/bin:$PATH"' >> ~/.bashrc'
+              conda_installer="/tmp/miniconda.sh"
+              curl -fsSL --retry 5 -o "$conda_installer" https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+              bash "$conda_installer" -b -p /opt/miniconda-latest
+              rm -f "$conda_installer"
+            fi
             if [ ! -d /opt/conda/envs/aroma_py36 ]; then
               conda create -yq -n aroma_py36 python=3.6
               source activate aroma_py36
