@@ -101,11 +101,11 @@ jobs:
           name: Generate environment
           command: |
             # apt-get install -yqq make
-            if [ ! -d /opt/conda/envs/aroma_py36 ]; then
-              conda create -yq -n aroma_py36 python=3.6
-              source activate aroma_py36
-              pip install -e ".[test]"
-            fi
+            # if [ ! -d /opt/conda/envs/aroma_py36 ]; then
+            conda create -yq -n aroma_py36 python=3.6
+            source activate aroma_py36
+            pip install -e ".[test]"
+            # fi
       - run:
           name: Run integration tests
           no_output_timeout: 10m
