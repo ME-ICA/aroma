@@ -17,23 +17,23 @@ jobs:
           root: /tmp
           paths:
               - src/aroma
-      # - restore_cache:
-      #     key: conda-py37-v1-{{ checksum "setup.cfg" }}
+      - restore_cache:
+          key: conda-py37-v1-{{ checksum "setup.cfg" }}
       - run:
           name: Generate environment
           command: |
-            # if [[ -e /opt/conda/envs/py36_env ]]; then
-            #   echo "Restoring environment from cache"
-            #     source activate aroma_py37
-            # else
-            conda create -yq -n aroma_py37 python=3.7
-            source activate aroma_py37
-            pip install -e ".[test,doc]"
-            # fi
+            if [[ -e /opt/miniconda-latest/envs/aroma_py37 ]]; then
+              echo "Restoring environment from cache"
+              source activate aroma_py37
+            else
+              conda create -yq -n aroma_py37 python=3.7
+              source activate aroma_py37
+              pip install -e ".[test,doc]"
+            fi
       - save_cache:
           key: conda-py37-v1-{{ checksum "setup.cfg" }}
           paths:
-              - /opt/conda/envs/aroma_py37
+              - /opt/miniconda-latest/envs/aroma_py37
 
   unittest_36:
     docker:
@@ -47,11 +47,11 @@ jobs:
           name: Generate environment
           command: |
             # apt-get install -yqq make
-            # if [ ! -d /opt/conda/envs/aroma_py36 ]; then
-            conda create -yq -n aroma_py36 python=3.6
-            source activate aroma_py36
-            pip install -e ".[test]"
-            # fi
+            if [ ! -d /opt/miniconda-latest/envs/aroma_py36 ]; then
+              conda create -yq -n aroma_py36 python=3.6
+              source activate aroma_py36
+              pip install -e ".[test]"
+            fi
       - run:
           name: Running unit tests
           command: |
@@ -62,7 +62,7 @@ jobs:
       - save_cache:
           key: conda-py36-v1-{{ checksum "setup.cfg" }}
           paths:
-              - /opt/conda/envs/aroma_py36
+              - /opt/miniconda-latest/envs/aroma_py36
       - persist_to_workspace:
           root: /tmp
           paths:
@@ -79,7 +79,7 @@ jobs:
       - run:
           name: Running unit tests
           command: |
-            # apt-get install -y make
+            # apt-get install -yqq make
             source activate aroma_py37  # depends on makeenv_37
             make unittest
             mkdir /tmp/src/coverage
@@ -101,11 +101,11 @@ jobs:
           name: Generate environment
           command: |
             # apt-get install -yqq make
-            # if [ ! -d /opt/conda/envs/aroma_py36 ]; then
-            conda create -yq -n aroma_py36 python=3.6
-            source activate aroma_py36
-            pip install -e ".[test]"
-            # fi
+            if [ ! -d /opt/miniconda-latest/envs/aroma_py36 ]; then
+              conda create -yq -n aroma_py36 python=3.6
+              source activate aroma_py36
+              pip install -e ".[test]"
+            fi
       - run:
           name: Run integration tests
           no_output_timeout: 10m
