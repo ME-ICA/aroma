@@ -17,8 +17,8 @@ jobs:
           root: /tmp
           paths:
               - src/aroma
-      - restore_cache:
-          key: conda-py37-v1-{{ checksum "setup.cfg" }}
+      # - restore_cache:
+      #     key: conda-py37-v1-{{ checksum "setup.cfg" }}
       - run:
           name: Generate environment
           command: |
