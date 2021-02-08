@@ -3,8 +3,8 @@ import pytest
 
 from nilearn.datasets import fetch_development_fmri
 
-
 import aroma
+
 
 def pytest_addoption(parser):
     parser.addoption(
