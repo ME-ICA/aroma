@@ -22,14 +22,9 @@ jobs:
       - run:
           name: Generate environment
           command: |
-            if [[ -e /opt/miniconda-latest/envs/aroma_py37 ]]; then
-              echo "Restoring environment from cache"
-              source activate aroma_py37
-            else
-              conda create -yq -n aroma_py37 python=3.7
-              source activate aroma_py37
-              pip install -e ".[test,doc]"
-            fi
+            conda create -yq -n aroma_py37 python=3.7
+            source activate aroma_py37
+            pip install -e ".[test,doc]"
       - save_cache:
           key: conda-py37-v1-{{ checksum "setup.cfg" }}
           paths:
