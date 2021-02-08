@@ -11,6 +11,8 @@ from aroma.tests.utils import get_tests_resource_path
 
 def test_feature_time_series(mel_mix, mc, features_df):
 
+    np.random.seed(1)
+
     # Run feature_time_series
     max_RP_corr = features.feature_time_series(mel_mix, mc)
 
@@ -22,6 +24,8 @@ def test_feature_time_series(mel_mix, mc, features_df):
 
 def test_feature_frequency(mel_FT_mix, features_df):
 
+    np.random.seed(1)
+
     # Run feature_frequency
     HFC = features.feature_frequency(mel_FT_mix, TR=2)
 
@@ -32,6 +36,8 @@ def test_feature_frequency(mel_FT_mix, features_df):
 
 
 def test_feature_spatial(mel_IC, features_df):
+
+    np.random.seed(1)
 
     # Run feature_spatial
     edge_fract, csf_fract = features.feature_spatial(mel_IC)
