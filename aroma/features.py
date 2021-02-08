@@ -1,7 +1,6 @@
 """Functions to calculate ICA-AROMA features for component classification."""
 import logging
 import os
-import sys
 
 import nibabel as nib
 import numpy as np
