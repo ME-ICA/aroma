@@ -131,10 +131,10 @@ jobs:
           no_output_timeout: 10m
           command: |
             # apt-get install -yqq make
+            source activate /opt/conda/envs/aroma_py37  # depends on makeenv_37
             echo $FSLDIR
             echo "PATH=${FSLDIR}/bin:${PATH}" >> $BASH_ENV
             # export FSLDIR PATH
-            source activate /opt/conda/envs/aroma_py37  # depends on makeenv_37
             make integration
             mkdir /tmp/src/coverage
             mv /tmp/src/aroma/.coverage /tmp/src/coverage/.coverage.integration37
