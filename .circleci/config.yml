@@ -23,7 +23,7 @@ jobs:
           name: Generate environment
           command: |
             conda create -yq -n aroma_py37 python=3.7
-            source activate aroma_py37
+            source activate /opt/miniconda-latest/envs/aroma_py37
             pip install -e ".[test,doc]"
       - save_cache:
           key: conda-py37-v1-{{ checksum "setup.cfg" }}
@@ -44,13 +44,13 @@ jobs:
             # apt-get install -yqq make
             if [ ! -d /opt/miniconda-latest/envs/aroma_py36 ]; then
               conda create -yq -n aroma_py36 python=3.6
-              source activate aroma_py36
+              source activate /opt/miniconda-latest/envs/aroma_py36
               pip install -e ".[test]"
             fi
       - run:
           name: Running unit tests
           command: |
-            source activate aroma_py36
+            source activate /opt/miniconda-latest/envs/aroma_py36
             make unittest
             mkdir /tmp/src/coverage
             mv /tmp/src/aroma/.coverage /tmp/src/coverage/.coverage.py36
@@ -75,7 +75,7 @@ jobs:
           name: Running unit tests
           command: |
             # apt-get install -yqq make
-            source activate aroma_py37  # depends on makeenv_37
+            source activate /opt/miniconda-latest/envs/aroma_py37  # depends on makeenv_37
             make unittest
             mkdir /tmp/src/coverage
             mv /tmp/src/aroma/.coverage /tmp/src/coverage/.coverage.py37
@@ -98,14 +98,14 @@ jobs:
             # apt-get install -yqq make
             if [ ! -d /opt/miniconda-latest/envs/aroma_py36 ]; then
               conda create -yq -n aroma_py36 python=3.6
-              source activate aroma_py36
+              source activate /opt/miniconda-latest/envs/aroma_py36
               pip install -e ".[test]"
             fi
       - run:
           name: Run integration tests
           no_output_timeout: 10m
           command: |
-            source activate aroma_py36
+            source activate /opt/miniconda-latest/envs/aroma_py36
             make integration
             mkdir /tmp/src/coverage
             mv /tmp/src/aroma/.coverage /tmp/src/coverage/.coverage.integration36
@@ -129,7 +129,7 @@ jobs:
           no_output_timeout: 10m
           command: |
             # apt-get install -yqq make
-            source activate aroma_py37  # depends on makeenv_37
+            source activate /opt/miniconda-latest/envs/aroma_py37  # depends on makeenv_37
             make integration
             mkdir /tmp/src/coverage
             mv /tmp/src/aroma/.coverage /tmp/src/coverage/.coverage.integration37
@@ -152,7 +152,7 @@ jobs:
           name: Style check
           command: |
             # apt-get install -yqq make
-            source activate aroma_py37  # depends on makeenv37
+            source activate /opt/miniconda-latest/envs/aroma_py37  # depends on makeenv37
             make lint
       - store_artifacts:
           path: /tmp/data/lint
@@ -170,7 +170,7 @@ jobs:
           name: Build documentation
           command: |
             # apt-get install -yqq make
-            source activate aroma_py37  # depends on makeenv_37
+            source activate /opt/miniconda-latest/envs/aroma_py37  # depends on makeenv_37
             pip install sphinx_rtd_theme
             make -C docs html
       - store_artifacts:
@@ -190,7 +190,7 @@ jobs:
           name: Merge coverage files
           command: |
             # apt-get install -yqq curl
-            source activate aroma_py37  # depends on makeenv37
+            source activate /opt/miniconda-latest/envs/aroma_py37  # depends on makeenv37
             cd /tmp/src/coverage/
             coverage combine
             coverage xml
