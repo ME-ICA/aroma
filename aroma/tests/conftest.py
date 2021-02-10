@@ -35,7 +35,10 @@ def featurespath():
 def nilearn_data(testpath):
     return fetch_development_fmri(n_subjects=1, age_group="adult")
 
-
+# Feature outputs generated with the following command (adding breakpoints to save results)
+# python2 ICA_AROMA.py -o out -i
+# sub-pixar123_task-pixar_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz
+# -mc mc.tsv -tr 2 -np
 @pytest.fixture
 def mel_FT_mix(featurespath):
     return op.join(featurespath, 'melodic_FTmix')
@@ -57,5 +60,20 @@ def mel_IC(featurespath):
 
 
 @pytest.fixture
-def features_df(featurespath):
-    return op.join(featurespath, 'features.csv')
+def csfFract(featurespath):
+    return op.join(featurespath, 'csfFract.npy')
+
+
+@pytest.fixture
+def edgeFract(featurespath):
+    return op.join(featurespath, 'edgeFract.npy')
+
+
+@pytest.fixture
+def max_correls(featurespath):
+    return op.join(featurespath, 'max_correls.npy')
+
+
+@pytest.fixture
+def HFC(featurespath):
+    return op.join(featurespath, 'HFC.npy')
