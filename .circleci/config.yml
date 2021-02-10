@@ -9,7 +9,7 @@ jobs:
 
   makeenv_37:
     docker:
-      - image: continuumio/miniconda3
+      - image: nipype/nipype
     working_directory: /tmp/src/aroma
     steps:
       - checkout
@@ -22,22 +22,17 @@ jobs:
       - run:
           name: Generate environment
           command: |
-            if [[ -e /opt/conda/envs/py36_env ]]; then
-              echo "Restoring environment from cache"
-                source activate aroma_py37
-            else
-              conda create -yq -n aroma_py37 python=3.7
-              source activate aroma_py37
-              pip install -e ".[test,doc]"
-            fi
+            conda create -yq -n aroma_py37 python=3.7
+            source activate /opt/miniconda-latest/envs/aroma_py37
+            pip install -e ".[test,doc]"
       - save_cache:
           key: conda-py37-v1-{{ checksum "setup.cfg" }}
           paths:
-              - /opt/conda/envs/aroma_py37
+              - /opt/miniconda-latest/envs/aroma_py37
 
   unittest_36:
     docker:
-      - image: continuumio/miniconda3
+      - image: nipype/nipype
     working_directory: /tmp/src/aroma
     steps:
       - checkout
@@ -46,8 +41,8 @@ jobs:
       - run:
           name: Generate environment
           command: |
-            apt-get install -yqq make
-            if [ ! -d /opt/conda/envs/aroma_py36 ]; then
+            # apt-get install -yqq make
+            if [ ! -d /opt/miniconda-latest/envs/aroma_py36 ]; then
               conda create -yq -n aroma_py36 python=3.6
               source activate aroma_py36
               pip install -e ".[test]"
@@ -62,7 +57,7 @@ jobs:
       - save_cache:
           key: conda-py36-v1-{{ checksum "setup.cfg" }}
           paths:
-              - /opt/conda/envs/aroma_py36
+              - /opt/miniconda-latest/envs/aroma_py36
       - persist_to_workspace:
           root: /tmp
           paths:
@@ -70,7 +65,7 @@ jobs:
 
   unittest_37:
     docker:
-      - image: continuumio/miniconda3
+      - image: nipype/nipype
     working_directory: /tmp/src/aroma
     steps:
       - checkout
@@ -79,8 +74,8 @@ jobs:
       - run:
           name: Running unit tests
           command: |
-            apt-get install -y make
-            source activate aroma_py37  # depends on makeenv_37
+            # apt-get install -yqq make
+            source activate /opt/conda/envs/aroma_py37  # depends on makeenv_37
             make unittest
             mkdir /tmp/src/coverage
             mv /tmp/src/aroma/.coverage /tmp/src/coverage/.coverage.py37
@@ -91,7 +86,7 @@ jobs:
 
   integrationtest_36:
     docker:
-      - image: continuumio/miniconda3
+      - image: nipype/nipype
     working_directory: /tmp/src/aroma
     steps:
       - checkout
@@ -100,8 +95,8 @@ jobs:
       - run:
           name: Generate environment
           command: |
-            apt-get install -yqq make
-            if [ ! -d /opt/conda/envs/aroma_py36 ]; then
+            # apt-get install -yqq make
+            if [ ! -d /opt/miniconda-latest/envs/aroma_py36 ]; then
               conda create -yq -n aroma_py36 python=3.6
               source activate aroma_py36
               pip install -e ".[test]"
@@ -110,6 +105,7 @@ jobs:
           name: Run integration tests
           no_output_timeout: 10m
           command: |
+            source /etc/fsl/fsl.sh
             source activate aroma_py36
             make integration
             mkdir /tmp/src/coverage
@@ -123,7 +119,7 @@ jobs:
 
   integrationtest_37:
     docker:
-      - image: continuumio/miniconda3
+      - image: nipype/nipype
     working_directory: /tmp/src/aroma
     steps:
       - checkout
@@ -133,8 +129,9 @@ jobs:
           name: Run integration tests
           no_output_timeout: 10m
           command: |
-            apt-get install -yqq make
-            source activate aroma_py37  # depends on makeenv_37
+            # apt-get install -yqq make
+            source /etc/fsl/fsl.sh
+            source activate /opt/conda/envs/aroma_py37  # depends on makeenv_37
             make integration
             mkdir /tmp/src/coverage
             mv /tmp/src/aroma/.coverage /tmp/src/coverage/.coverage.integration37
@@ -147,7 +144,7 @@ jobs:
 
   style_check:
     docker:
-      - image: continuumio/miniconda3
+      - image: nipype/nipype
     working_directory: /tmp/src/aroma
     steps:
       - checkout
@@ -156,8 +153,8 @@ jobs:
       - run:
           name: Style check
           command: |
-            apt-get install -yqq make
-            source activate aroma_py37  # depends on makeenv37
+            # apt-get install -yqq make
+            source activate /opt/conda/envs/aroma_py37  # depends on makeenv37
             make lint
       - store_artifacts:
           path: /tmp/data/lint
@@ -165,7 +162,7 @@ jobs:
   build_docs:
     working_directory: /tmp/src/aroma
     docker:
-      - image: continuumio/miniconda3
+      - image: nipype/nipype
     steps:
       - attach_workspace:  # get aroma
           at: /tmp
@@ -174,8 +171,8 @@ jobs:
       - run:
           name: Build documentation
           command: |
-            apt-get install -yqq make
-            source activate aroma_py37  # depends on makeenv_37
+            # apt-get install -yqq make
+            source activate /opt/conda/envs/aroma_py37  # depends on makeenv_37
             pip install sphinx_rtd_theme
             make -C docs html
       - store_artifacts:
@@ -184,7 +181,7 @@ jobs:
   merge_coverage:
     working_directory: /tmp/src/aroma
     docker:
-      - image: continuumio/miniconda3
+      - image: nipype/nipype
     steps:
       - attach_workspace:
           at: /tmp
@@ -194,8 +191,8 @@ jobs:
       - run:
           name: Merge coverage files
           command: |
-            apt-get install -yqq curl
-            source activate aroma_py37  # depends on makeenv37
+            # apt-get install -yqq curl
+            source activate /opt/conda/envs/aroma_py37  # depends on makeenv37
             cd /tmp/src/coverage/
             coverage combine
             coverage xml
