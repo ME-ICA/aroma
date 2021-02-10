@@ -33,7 +33,8 @@ def featurespath():
 
 @pytest.fixture
 def nilearn_data(testpath):
-    return fetch_development_fmri(n_subjects=1, age_group="adult")
+    return fetch_development_fmri(n_subjects=1, age_group="adult",
+                                  data_dir=str(testpath))
 
 # Feature outputs generated with the following command (adding breakpoints to save results)
 # python2 ICA_AROMA.py -o out -i
