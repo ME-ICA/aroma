@@ -132,9 +132,8 @@ jobs:
           command: |
             # apt-get install -yqq make
             source activate /opt/conda/envs/aroma_py37  # depends on makeenv_37
-            echo $FSLDIR
+            FSLDIR="/usr/share/fsl/5.0"
             echo "PATH=${FSLDIR}/bin:${PATH}" >> $BASH_ENV
-            # export FSLDIR PATH
             make integration
             mkdir /tmp/src/coverage
             mv /tmp/src/aroma/.coverage /tmp/src/coverage/.coverage.integration37
