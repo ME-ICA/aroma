@@ -105,9 +105,8 @@ jobs:
           name: Run integration tests
           no_output_timeout: 10m
           command: |
+            source etc/fsl/fsl.sh
             source activate aroma_py36
-            echo "PATH=${FSLDIR}/bin:${PATH}" >> $BASH_ENV
-            # export FSLDIR PATH
             make integration
             mkdir /tmp/src/coverage
             mv /tmp/src/aroma/.coverage /tmp/src/coverage/.coverage.integration36
@@ -131,9 +130,8 @@ jobs:
           no_output_timeout: 10m
           command: |
             # apt-get install -yqq make
+            source etc/fsl/fsl.sh
             source activate /opt/conda/envs/aroma_py37  # depends on makeenv_37
-            FSLDIR="/usr/share/fsl/5.0"
-            echo "PATH=${FSLDIR}/bin:${PATH}" >> $BASH_ENV
             make integration
             mkdir /tmp/src/coverage
             mv /tmp/src/aroma/.coverage /tmp/src/coverage/.coverage.integration37
