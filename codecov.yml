@@ -1,6 +1,6 @@
 codecov:
-  branch: master
-  strict_yaml_branch: master
+  branch: main
+  strict_yaml_branch: main
   require_ci_to_pass: yes
   bot: "codecov-io"
   ci:
