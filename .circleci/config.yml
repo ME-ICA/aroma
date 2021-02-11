@@ -75,7 +75,7 @@ jobs:
           name: Running unit tests
           command: |
             # apt-get install -yqq make
-            source activate /opt/conda/envs/aroma_py37  # depends on makeenv_37
+            source activate /opt/miniconda-latest/envs/aroma_py37  # depends on makeenv_37
             make unittest
             mkdir /tmp/src/coverage
             mv /tmp/src/aroma/.coverage /tmp/src/coverage/.coverage.py37
@@ -131,7 +131,7 @@ jobs:
           command: |
             # apt-get install -yqq make
             source /etc/fsl/fsl.sh
-            source activate /opt/conda/envs/aroma_py37  # depends on makeenv_37
+            source activate /opt/miniconda-latest/envs/aroma_py37  # depends on makeenv_37
             make integration
             mkdir /tmp/src/coverage
             mv /tmp/src/aroma/.coverage /tmp/src/coverage/.coverage.integration37
@@ -154,7 +154,7 @@ jobs:
           name: Style check
           command: |
             # apt-get install -yqq make
-            source activate /opt/conda/envs/aroma_py37  # depends on makeenv37
+            source activate /opt/miniconda-latest/envs/aroma_py37  # depends on makeenv37
             make lint
       - store_artifacts:
           path: /tmp/data/lint
@@ -172,7 +172,7 @@ jobs:
           name: Build documentation
           command: |
             # apt-get install -yqq make
-            source activate /opt/conda/envs/aroma_py37  # depends on makeenv_37
+            source activate /opt/miniconda-latest/envs/aroma_py37  # depends on makeenv_37
             pip install sphinx_rtd_theme
             make -C docs html
       - store_artifacts:
@@ -192,7 +192,7 @@ jobs:
           name: Merge coverage files
           command: |
             # apt-get install -yqq curl
-            source activate /opt/conda/envs/aroma_py37  # depends on makeenv37
+            source activate /opt/miniconda-latest/envs/aroma_py37  # depends on makeenv37
             cd /tmp/src/coverage/
             coverage combine
             coverage xml
