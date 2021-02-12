@@ -2,8 +2,6 @@ import numpy as np
 import os.path as op
 import pandas as pd
 
-import pytest
-
 from aroma import features
 from aroma.tests.utils import get_tests_resource_path
 
