@@ -1,8 +1,7 @@
+"""Tests for the aroma.features module."""
 import numpy as np
-import os.path as op
-import pandas as pd
 
-from aroma import features
+from aroma import features, utils
 
 
 def test_feature_time_series(mel_mix, mc, max_correls):
@@ -35,8 +34,19 @@ def test_feature_spatial(mel_IC, edgeFract, csfFract):
 
     np.random.seed(1)
 
+    # Get masks
+    brain_img, csf_img, out_img, edge_img = utils.load_masks(
+        mel_IC, csf=None, brain=None
+    )
+
     # Run feature_spatial
-    edge_fract, csf_fract = features.feature_spatial(mel_IC)
+    edge_fract, csf_fract = features.feature_spatial(
+        z_maps=mel_IC,
+        csf_mask=csf_img,
+        brain_mask=brain_img,
+        edge_mask=edge_img,
+        out_mask=out_img,
+    )
 
     # Read features csv
     edgeFract = np.load(edgeFract)

@@ -1,10 +1,9 @@
 """Functions to calculate ICA-AROMA features for component classification."""
 import logging
-import os
 
-import nibabel as nib
 import numpy as np
 from nilearn import image, masking
+from nilearn._utils import load_niimg
 
 from . import utils
 
@@ -157,7 +156,7 @@ def feature_frequency(mel_FT_mix, TR):
     return HFC
 
 
-def feature_spatial(mel_IC):
+def feature_spatial(*, z_maps, csf_mask, edge_mask, brain_mask, out_mask):
     """Extract the spatial feature scores.
 
     For each IC it determines the fraction of the mixture modeled thresholded
@@ -169,6 +168,9 @@ def feature_spatial(mel_IC):
     mel_IC : str
         Full path of the nii.gz file containing mixture-modeled thresholded
         (p<0.5) Z-maps, registered to the MNI152 2mm template
+    masks : dict
+        Dictionary of masks. Keys are mask names and values are img_like
+        objects.
 
     Returns
     -------
@@ -180,20 +182,15 @@ def feature_spatial(mel_IC):
         mel_IC file
     """
     # Get the number of ICs
-    mel_IC_img = nib.load(mel_IC)
+    mel_IC_img = load_niimg(z_maps)
     num_ICs = mel_IC_img.shape[3]
-
-    masks_dir = utils.get_resource_path()
-    csf_mask = os.path.join(masks_dir, "mask_csf.nii.gz")
-    edge_mask = os.path.join(masks_dir, "mask_edge.nii.gz")
-    out_mask = os.path.join(masks_dir, "mask_out.nii.gz")
 
     # Loop over ICs
     edge_fract = np.zeros(num_ICs)
     csf_fract = np.zeros(num_ICs)
     for i in range(num_ICs):
         # Extract IC from the merged melodic_IC_thr2MNI2mm file
-        temp_IC = image.index_img(mel_IC, i)
+        temp_IC = image.index_img(mel_IC_img, i)
 
         # Change to absolute Z-values
         temp_IC = image.math_img("np.abs(img)", img=temp_IC)
