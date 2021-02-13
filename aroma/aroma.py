@@ -37,6 +37,7 @@ def aroma_workflow(
     ----------
     in_feat
     """
+    out_dir = os.path.abspath(out_dir)
     # Create output directory if needed
     if op.isdir(out_dir) and not overwrite:
         LGR.info(
@@ -246,9 +247,8 @@ def aroma_workflow(
 
     if generate_plots:
         from . import plotting
-
         plotting.classification_plot(
-            op.join(out_dir, "classification_overview.tsv"), out_dir
+            op.join(out_dir, "classification_overview.txt"), out_dir
         )
 
     if den_type != "no":
