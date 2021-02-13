@@ -226,21 +226,22 @@ def aroma_workflow(
     utils.register2MNI(fsl_dir, mel_IC, mel_IC_MNI, affmat, warp)
 
     LGR.info("  - extracting the CSF & Edge fraction features")
+    metric_metadata = {}
     features_df = pd.DataFrame()
-    features_df["edge_fract"], features_df["csf_fract"] = features.feature_spatial(
-        mel_IC_MNI
+    features_df["edge_fract"], features_df["csf_fract"], metric_metadata = features.feature_spatial(
+        mel_IC_MNI, metric_metadata
     )
 
     LGR.info("  - extracting the Maximum RP correlation feature")
     mel_mix = op.join(out_dir, "melodic.ica", "melodic_mix")
-    features_df["max_RP_corr"] = features.feature_time_series(mel_mix, mc)
+    features_df["max_RP_corr"], metric_metadata = features.feature_time_series(mel_mix, mc, metric_metadata)
 
     LGR.info("  - extracting the High-frequency content feature")
     mel_FT_mix = op.join(out_dir, "melodic.ica", "melodic_FTmix")
-    features_df["HFC"] = features.feature_frequency(mel_FT_mix, TR)
+    features_df["HFC"], metric_metadata = features.feature_frequency(mel_FT_mix, TR, metric_metadata)
 
     LGR.info("  - classification")
-    motion_ICs = utils.classification(features_df, out_dir)
+    motion_ICs = utils.classification(features_df, out_dir, metric_metadata)
 
     if generate_plots:
         from . import plotting

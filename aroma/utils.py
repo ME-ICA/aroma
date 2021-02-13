@@ -275,7 +275,7 @@ def cross_correlation(a, b):
     return np.corrcoef(a.T, b.T)[:ncols_a, ncols_a:]
 
 
-def classification(features_df, out_dir):
+def classification(features_df, out_dir, metric_metadata):
     """Classify components as motion or non-motion based on four features.
 
     The four features used for classification are: maximum RP correlation,
@@ -300,31 +300,64 @@ def classification(features_df, out_dir):
     classified_motion_ICs.txt : A text file containing the indices of the
                                 components identified as motion components
     """
-    # Put the feature scores in a text file
-    features_df.to_csv(op.join(out_dir, "feature_scores.tsv"), sep="\t", index=False)
-
-    # Classify the ICs as motion or non-motion
-
     # Define criteria needed for classification (thresholds and
     # hyperplane-parameters)
     THR_CSF = 0.10
     THR_HFC = 0.35
     HYPERPLANE = np.array([-19.9751070082159, 9.95127547670627, 24.8333160239175])
 
+    metric_metadata["classification"] = {
+        "LongName": "Component classification",
+        "Description": (
+            "Classification from the classification procedure."
+        ),
+        "Levels": {
+            "accepted": "A component that is determined not to be associated with motion.",
+            "rejected": "A motion-related component.",
+    }
+    metric_metadata["rationale"] = {
+        "LongName": "Rationale for component classification",
+        "Description": (
+            "The reason for the classification. "
+            "In cases where components are classified based on more than one criterion, "
+            "they are listed sequentially, separated by semicolons."
+        ),
+        "Levels": {
+            "CSF": "The csf_fract value is higher than {}".format(THR_CSF),
+            "HFC": "The HFC value is higher than {}".format(THR_HFC),
+            "hyperplane": (
+                "After the max_RP_corr and edge_fract values are projected "
+                "to a hyperplane, the projected point is less than zero."
+            )
+        }
+    }
+
+    # Put the feature scores in a text file
+    features_df.to_csv(op.join(out_dir, "feature_scores.tsv"), sep="\t", index=False)
+
+    # Classify the ICs as motion (rejected) or non-motion (accepted)
+    all_comps = features_df.index.values
+
+    # CSF
+    rej_csf = all_comps[features_df["csf_fract"] > THR_CSF]
+    features_df.loc[rej_csf, "classification"] = "rejected"
+    features_df.loc[rej_csf, "rationale"] = "CSF;"
+
+    # HFC
+    rej_hfc = all_comps[features_df["HFC"] > THR_HFC]
+    features_df.loc[rej_hfc, "classification"] = "rejected"
+    features_df.loc[rej_hfc, "rationale"] = "HFC;"
+
+    # Hyperplane
     # Project edge & max_RP_corr feature scores to new 1D space
     x = features_df[["max_RP_corr", "edge_fract"]].values
     proj = HYPERPLANE[0] + np.dot(x, HYPERPLANE[1:])
+    rej_hyperplane = all_comps[proj > 0]
+    features_df.loc[rej_hyperplane, "classification"] = "rejected"
+    features_df.loc[rej_hyperplane, "rationale"] = "hyperplane;"
 
-    # Classify the ICs
-    is_motion = (
-        (features_df["csf_fract"] > THR_CSF)
-        | (features_df["HFC"] > THR_HFC)
-        | (proj > 0)
-    )
-    features_df["classification"] = is_motion
-    features_df["classification"] = features_df["classification"].map(
-        {True: "rejected", False: "accepted"}
-    )
+    # Reorder columns and remove trailing semicolons
+    features_df = clean_dataframe(features_df)
 
     # Put the indices of motion-classified ICs in a text file (starting with 1)
     motion_ICs = features_df["classification"][features_df["classification"] == "rejected"].index
@@ -334,11 +367,12 @@ def classification(features_df, out_dir):
         fo.write(out_str)
 
     # Create a summary overview of the classification
+    out_file = op.join(out_dir, "desc-AROMA_metrics.tsv")
     features_df.to_csv(
-        op.join(out_dir, "classification_overview.txt"), sep="\t", index_label="IC"
+        out_file, sep="\t", index_label="IC"
     )
 
-    return motion_ICs
+    return motion_ICs, metric_metadata
 
 
 def denoising(fsl_dir, in_file, out_dir, mixing, den_type, den_idx):
@@ -415,6 +449,18 @@ def denoising(fsl_dir, in_file, out_dir, mixing, den_type, den_idx):
 
         if den_type in ("aggr", "both"):
             shutil.copyfile(in_file, aggr_denoised_file)
+
+
+def clean_dataframe(comptable):
+    """
+    Reorder columns in component table so "rationale" and "classification" are
+    last and remove trailing semicolons from rationale column.
+    """
+    cols_at_end = ['classification', 'rationale']
+    comptable = comptable[[c for c in comptable if c not in cols_at_end] +
+                          [c for c in cols_at_end if c in comptable]]
+    comptable['rationale'] = comptable['rationale'].str.rstrip(';')
+    return comptable
 
 
 def get_resource_path():
