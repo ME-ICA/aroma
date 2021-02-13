@@ -1,9 +1,9 @@
 """Utility functions for ICA-AROMA."""
+import datetime
 import logging
 import os
 import os.path as op
 import shutil
-from tempfile import mkstemp
 
 import nibabel as nib
 import numpy as np
@@ -122,7 +122,10 @@ def runICA(fsl_dir, in_file, out_dir, mel_dir_in, mask, dim, TR):
                            thresholded Z-statistical maps located in
                            melodic.ica/stats/
     """
-    temp_file = mkstemp(suffix=".nii.gz")
+    temp_file = op.join(
+        out_dir,
+        "temp_{}.nii.gz"
+    ).format(datetime.datetime.now().strftime('%Y-%m-%dT%H%M%S'))
     mask.to_filename(temp_file)
 
     # Define the 'new' MELODIC directory and predefine some associated files
