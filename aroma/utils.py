@@ -463,8 +463,13 @@ def motpars_spm2fsl(motpars):
     """
     if isinstance(motpars, str) and op.isfile(motpars):
         motpars = np.loadtxt(motpars)
-    elif not isinstance(motpars, np.array):
+    elif not isinstance(motpars, np.ndarray):
         raise ValueError("Input must be an existing file or a numpy array.")
+
+    if motpars.shape[1] != 6:
+        raise ValueError(
+            "Motion parameters must have exactly 6 columns, not {}.".format(motpars.shape[1])
+        )
 
     # Split translations from rotations
     trans, rot = motpars[:, :3], motpars[:, 3:]
@@ -483,7 +488,7 @@ def motpars_afni2fsl(motpars):
     Parameters
     ----------
     motpars : str or array_like
-        AfNI-format motion parameters.
+        AfNI-format motion parameters in 1D file.
         Rotations are in degrees and translations come first.
 
     Returns
@@ -494,8 +499,13 @@ def motpars_afni2fsl(motpars):
     """
     if isinstance(motpars, str) and op.isfile(motpars):
         motpars = np.loadtxt(motpars)
-    elif not isinstance(motpars, np.array):
+    elif not isinstance(motpars, np.ndarray):
         raise ValueError("Input must be an existing file or a numpy array.")
+
+    if motpars.shape[1] != 6:
+        raise ValueError(
+            "Motion parameters must have exactly 6 columns, not {}.".format(motpars.shape[1])
+        )
 
     # Split translations from rotations
     trans, rot = motpars[:, :3], motpars[:, 3:]
@@ -526,7 +536,7 @@ def load_motpars(motion_file, source="auto"):
         translations second.
     """
     if source == "auto":
-        if motion_file.startswith("rp_") and motion_file.endswith(".txt"):
+        if op.basename(motion_file).startswith("rp_") and motion_file.endswith(".txt"):
             source = "spm"
         elif motion_file.endswith(".1D"):
             source = "afni"

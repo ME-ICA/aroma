@@ -78,3 +78,18 @@ def max_correls(featurespath):
 @pytest.fixture
 def HFC(featurespath):
     return op.join(featurespath, 'HFC.npy')
+
+
+@pytest.fixture
+def motion_parameters(featurespath):
+    """Motion parameter outputs in different formats.
+
+    All outputs manually converted from FSL version.
+    """
+    files = {
+        "FSL": op.join(featurespath, "mc_fsl.txt"),
+        "AfNI": op.join(featurespath, "mc_afni.1D"),
+        "SPM": op.join(featurespath, "rp_mc_spm.txt"),
+        "fMRIPrep": op.join(featurespath, "mc_fmriprep.tsv"),
+    }
+    return files
