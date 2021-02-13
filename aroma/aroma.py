@@ -31,6 +31,7 @@ def aroma_workflow(
     quiet=False,
     csf=None,
     brain=None,
+    mc_source="auto",
 ):
     """Run the AROMA workflow.
 
@@ -212,6 +213,7 @@ def aroma_workflow(
     )
 
     LGR.info("  - extracting the Maximum RP correlation feature")
+    mc = utils.load_motpars(mc, source=mc_source)
     features_df["max_RP_corr"] = features.feature_time_series(mixing, mc)
 
     LGR.info("  - extracting the High-frequency content feature")

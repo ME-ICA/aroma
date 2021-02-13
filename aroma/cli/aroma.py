@@ -49,6 +49,7 @@ def _get_parser():
         "-feat",
         dest="in_feat",
         required=False,
+        default=None,
         type=lambda x: is_valid_path(parser, x),
         help=(
             "Path to FSL FEAT directory. "
@@ -75,6 +76,22 @@ def _get_parser():
             "realignment (e.g., FSL MCFLIRT). Note that the order of "
             "parameters does not matter, should your file not originate "
             "from FSL MCFLIRT."
+        ),
+    )
+    nonfeatoptions.add_argument(
+        "-mcsource",
+        dest="mc_source",
+        choices=["auto", "fsl", "fmriprep", "spm", "afni"],
+        required=False,
+        default="auto",
+        help=(
+            "Source (and format) of motion parameters. "
+            "Each package saves its motion parameters slightly differently, "
+            "so we need to determine the source before using the parameters "
+            "in AROMA. "
+            "The 'auto' option attempts to predict the source of the "
+            "parameters based on the filename. "
+            "Default is 'auto'."
         ),
     )
     nonfeatoptions.add_argument(
@@ -146,7 +163,7 @@ def _get_parser():
         "-mel_dir",
         dest="mel_dir",
         type=lambda x: is_valid_path(parser, x),
-        default="",
+        default=None,
         help=(
             "MELODIC directory name, in case MELODIC has been run previously."
         ),
