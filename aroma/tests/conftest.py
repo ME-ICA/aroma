@@ -52,7 +52,7 @@ def mel_mix(featurespath):
 
 @pytest.fixture
 def mc(featurespath):
-    return op.join(featurespath, 'mc.tsv')
+    return op.join(featurespath, 'mc.txt')
 
 
 @pytest.fixture
