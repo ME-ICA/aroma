@@ -25,7 +25,7 @@ def test_integration(skip_integration, nilearn_data):
 
     # Extract motion parameters from confounds
     mc = confounds[["rot_x", "rot_y", "rot_z", "trans_x", "trans_y", "trans_z"]]
-    mc_path = join(test_path, "mc.tsv")
+    mc_path = join(test_path, "mc.txt")
     mc.to_csv(mc_path, sep="\t", index=False, header=None)
 
     aroma_workflow(
