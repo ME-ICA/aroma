@@ -5,7 +5,6 @@ import numpy as np
 from nilearn import image, masking
 from nilearn._utils import load_niimg
 
-from .utils import cross_correlation
 from . import utils
 
 LGR = logging.getLogger(__name__)

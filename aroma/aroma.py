@@ -209,7 +209,11 @@ def aroma_workflow(
     LGR.info("  - extracting the CSF & Edge fraction features")
     features_df = pd.DataFrame()
     features_df["edge_fract"], features_df["csf_fract"] = features.feature_spatial(
-        mel_IC_MNI, csf_img, brain_img, edge_img, out_img
+        z_maps=mel_IC_MNI,
+        csf_mask=csf_img,
+        brain_mask=brain_img,
+        edge_mask=edge_img,
+        out_mask=out_img,
     )
 
     LGR.info("  - extracting the Maximum RP correlation feature")
