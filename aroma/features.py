@@ -6,7 +6,7 @@ import nibabel as nib
 import numpy as np
 from nilearn import image, masking
 
-from .utils import cross_correlation, get_resource_path
+from . import utils
 
 LGR = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ def feature_time_series(mel_mix, mc):
     mel_mix : str
         Full path of the melodic_mix text file.
         Stored array is (time x component).
-    mc : str
+    mc : str or array_like
         Full path of the text file containing the realignment parameters.
         Motion parameters are (time x 6), with the first three columns being
         rotation parameters (in radians) and the final three being translation
@@ -34,12 +34,15 @@ def feature_time_series(mel_mix, mc):
         Array of the maximum RP correlation feature scores for the components
         of the melodic_mix file.
     """
+    if isinstance(mc, str):
+        rp6 = utils.load_motpars(mc, source="auto")
+    else:
+        rp6 = mc
+    assert (rp6.ndim == 2) and (rp6.shape[1] == 6), "Wrong shape"
+
     # Read melodic mix file (IC time-series), subsequently define a set of
     # squared time-series
     mix = np.loadtxt(mel_mix)
-
-    # Read motion parameter file
-    rp6 = np.loadtxt(mc)
 
     # Determine the derivatives of the RPs (add zeros at time-point zero)
     _, nparams = rp6.shape
@@ -79,10 +82,10 @@ def feature_time_series(mel_mix, mc):
 
         # Combined correlations between RP and IC time-series, squared and
         # non squared
-        correl_nonsquared = cross_correlation(mix[chosen_rows],
-                                              rp_model[chosen_rows])
-        correl_squared = cross_correlation(mix[chosen_rows]**2,
-                                           rp_model[chosen_rows]**2)
+        correl_nonsquared = utils.cross_correlation(mix[chosen_rows],
+                                                    rp_model[chosen_rows])
+        correl_squared = utils.cross_correlation(mix[chosen_rows]**2,
+                                                 rp_model[chosen_rows]**2)
         correl_both = np.hstack((correl_squared, correl_nonsquared))
 
         # Maximum absolute temporal correlation for every IC
@@ -180,7 +183,7 @@ def feature_spatial(mel_IC):
     mel_IC_img = nib.load(mel_IC)
     num_ICs = mel_IC_img.shape[3]
 
-    masks_dir = get_resource_path()
+    masks_dir = utils.get_resource_path()
     csf_mask = os.path.join(masks_dir, "mask_csf.nii.gz")
     edge_mask = os.path.join(masks_dir, "mask_edge.nii.gz")
     out_mask = os.path.join(masks_dir, "mask_out.nii.gz")

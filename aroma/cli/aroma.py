@@ -74,6 +74,22 @@ def _get_parser():
         ),
     )
     nonfeatoptions.add_argument(
+        "-mcsource",
+        dest="mc_source",
+        choices=["auto", "fsl", "fmriprep", "spm", "afni"],
+        required=False,
+        default="auto",
+        help=(
+            "Source (and format) of motion parameters. "
+            "Each package saves its motion parameters slightly differently, "
+            "so we need to determine the source before using the parameters "
+            "in AROMA. "
+            "The 'auto' option attempts to predict the source of the "
+            "parameters based on the filename. "
+            "Default is 'auto'."
+        ),
+    )
+    nonfeatoptions.add_argument(
         "-a",
         "-affmat",
         dest="affmat",
