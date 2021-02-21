@@ -140,3 +140,18 @@ def classified_motion_ICs(testpath):
 def feature_scores(testpath):
     return fetch_file('cxwfk', testpath,
                       'feature_scores.txt')
+
+
+@pytest.fixture
+def motion_parameters(featurespath):
+    """Motion parameter outputs in different formats.
+
+    All outputs manually converted from FSL version.
+    """
+    files = {
+        "FSL": os.path.join(featurespath, "mc_fsl.txt"),
+        "AfNI": os.path.join(featurespath, "mc_afni.1D"),
+        "SPM": os.path.join(featurespath, "rp_mc_spm.txt"),
+        "fMRIPrep": os.path.join(featurespath, "mc_fmriprep.tsv"),
+    }
+    return files
