@@ -3,16 +3,14 @@ import pandas as pd
 from os.path import join, split, isfile
 
 from aroma.aroma import aroma_workflow
-from aroma.tests.utils import get_tests_resource_path
 
 import pytest
 
 
-def test_integration(skip_integration, nilearn_data):
+def test_integration(skip_integration, nilearn_data, classification_overview,
+                     classified_motion_ICs, feature_scores):
     if skip_integration:
         pytest.skip("Skipping integration test")
-
-    resources_path = get_tests_resource_path()
 
     # Obtain test path
     test_path, _ = split(nilearn_data.func[0])
@@ -54,7 +52,7 @@ def test_integration(skip_integration, nilearn_data):
     assert isfile(join(out_path, "melodic_IC_thr_MNI2mm.nii.gz"))
 
     # Check classification overview file
-    true_classification_overview = pd.read_csv(join(resources_path, "classification_overview.txt"),
+    true_classification_overview = pd.read_csv(classification_overview,
                                                sep="\t",
                                                index_col="IC",
                                                nrows=4,)
@@ -68,12 +66,10 @@ def test_integration(skip_integration, nilearn_data):
 
     #  Check feature scores
     f_scores = pd.read_table(join(out_path, "feature_scores.tsv"))
-    f_true = pd.read_table(join(resources_path, "feature_scores.txt"))
+    f_true = pd.read_table(feature_scores)
     assert np.allclose(f_true.values, f_scores.values, atol=0.9)
 
     # Check motion ICs
     mot_ics = np.loadtxt(join(out_path, "classified_motion_ICs.txt"), delimiter=",")
-    true_mot_ics = np.loadtxt(
-        join(resources_path, "classified_motion_ICs.txt"), delimiter=","
-    )
+    true_mot_ics = np.loadtxt(classified_motion_ICs, delimiter=",")
     assert np.allclose(true_mot_ics[:4], mot_ics[:4])
