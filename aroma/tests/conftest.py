@@ -143,15 +143,15 @@ def feature_scores(testpath):
 
 
 @pytest.fixture
-def motion_parameters(featurespath):
+def motion_parameters(testpath):
     """Motion parameter outputs in different formats.
 
     All outputs manually converted from FSL version.
     """
     files = {
-        "FSL": os.path.join(featurespath, "mc_fsl.txt"),
-        "AfNI": os.path.join(featurespath, "mc_afni.1D"),
-        "SPM": os.path.join(featurespath, "rp_mc_spm.txt"),
-        "fMRIPrep": os.path.join(featurespath, "mc_fmriprep.tsv"),
+        "FSL": fetch_file('ahtrv', testpath, 'mc_fsl.txt'),
+        "AfNI": fetch_file('p6ybt', testpath, 'mc_afni.1D'),
+        "SPM": fetch_file('ct6q4', testpath, 'rp_mc_spm.txt'),
+        "fMRIPrep": fetch_file('af275', testpath, 'mc_fmriprep.tsv'),
     }
     return files
