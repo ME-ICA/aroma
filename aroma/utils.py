@@ -340,15 +340,18 @@ def classification(features_df, out_dir, metric_metadata):
     # Classify the ICs as motion (rejected) or non-motion (accepted)
     all_comps = features_df.index.values
 
+    features_df["classification"] = "accepted"
+    features_df["rationale"] = ""
+
     # CSF
     rej_csf = all_comps[features_df["csf_fract"] > THR_CSF]
     features_df.loc[rej_csf, "classification"] = "rejected"
-    features_df.loc[rej_csf, "rationale"] = "CSF;"
+    features_df.loc[rej_csf, "rationale"] += "CSF;"
 
     # HFC
     rej_hfc = all_comps[features_df["HFC"] > THR_HFC]
     features_df.loc[rej_hfc, "classification"] = "rejected"
-    features_df.loc[rej_hfc, "rationale"] = "HFC;"
+    features_df.loc[rej_hfc, "rationale"] += "HFC;"
 
     # Hyperplane
     # Project edge & max_RP_corr feature scores to new 1D space
@@ -356,7 +359,7 @@ def classification(features_df, out_dir, metric_metadata):
     proj = HYPERPLANE[0] + np.dot(x, HYPERPLANE[1:])
     rej_hyperplane = all_comps[proj > 0]
     features_df.loc[rej_hyperplane, "classification"] = "rejected"
-    features_df.loc[rej_hyperplane, "rationale"] = "hyperplane;"
+    features_df.loc[rej_hyperplane, "rationale"] += "hyperplane;"
 
     # Reorder columns and remove trailing semicolons
     features_df = clean_dataframe(features_df)
