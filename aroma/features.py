@@ -42,7 +42,7 @@ def feature_time_series(mel_mix, mc, metric_metadata=None):
         Otherwise, this will be a dictionary containing existing information,
         as well as new metadata for the ``max_RP_corr`` metric.
     """
-    if metric_metadata:
+    if isinstance(metric_metadata, dict):
         metric_metadata["max_RP_corr"] = {
             "LongName": "Maximum motion parameter correlation",
             "Description": (
@@ -155,7 +155,7 @@ def feature_frequency(mel_FT_mix, TR, metric_metadata=None):
         Otherwise, this will be a dictionary containing existing information,
         as well as new metadata for the ``HFC`` metric.
     """
-    if metric_metadata:
+    if isinstance(metric_metadata, dict):
         metric_metadata["HFC"] = {
             "LongName": "High-frequency content",
             "Description": (
@@ -233,7 +233,7 @@ def feature_spatial(mel_IC, metric_metadata=None):
         as well as new metadata for the ``edge_fract`` and ``csf_fract``
         metrics.
     """
-    if metric_metadata:
+    if isinstance(metric_metadata, dict):
         metric_metadata["edge_fract"] = {
             "LongName": "Edge content fraction",
             "Description": (
