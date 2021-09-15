@@ -259,7 +259,7 @@ def aroma_workflow(
         from . import plotting
 
         plotting.classification_plot(
-            op.join(out_dir, "classification_overview.tsv"), out_dir
+            op.join(out_dir, "desc-AROMA_metrics.tsv"), out_dir
         )
 
     if den_type != "no":

@@ -301,6 +301,8 @@ def classification(features_df, out_dir, metric_metadata):
     ------
     classified_motion_ICs.txt : A text file containing the indices of the
                                 components identified as motion components
+    desc-AROMA_metrics.tsv
+    desc-AROMA_metrics.json
     """
     # Define criteria needed for classification (thresholds and
     # hyperplane-parameters)
@@ -335,9 +337,6 @@ def classification(features_df, out_dir, metric_metadata):
         }
     }
 
-    # Put the feature scores in a text file
-    features_df.to_csv(op.join(out_dir, "feature_scores.tsv"), sep="\t", index=False)
-
     # Classify the ICs as motion (rejected) or non-motion (accepted)
     all_comps = features_df.index.values
 
@@ -371,9 +370,7 @@ def classification(features_df, out_dir, metric_metadata):
 
     # Create a summary overview of the classification
     out_file = op.join(out_dir, "desc-AROMA_metrics.tsv")
-    features_df.to_csv(
-        out_file, sep="\t", index_label="IC"
-    )
+    features_df.to_csv(out_file, sep="\t", index_label="IC")
 
     with open(op.join(out_dir, "desc-AROMA_metrics.json"), "w") as fo:
         json.dump(metric_metadata, fo, sort_keys=True, indent=4)

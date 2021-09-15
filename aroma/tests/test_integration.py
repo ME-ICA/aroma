@@ -46,29 +46,35 @@ def test_integration(skip_integration, nilearn_data):
     )
 
     # Make sure files are generated
-    assert isfile(join(out_path, "classification_overview.txt"))
+    assert isfile(join(out_path, "desc-AROMA_metrics.tsv"))
     assert isfile(join(out_path, "classified_motion_ICs.txt"))
     assert isfile(join(out_path, "denoised_func_data_nonaggr.nii.gz"))
-    assert isfile(join(out_path, "feature_scores.tsv"))
     assert isfile(join(out_path, "mask.nii.gz"))
     assert isfile(join(out_path, "melodic_IC_thr.nii.gz"))
     assert isfile(join(out_path, "melodic_IC_thr_MNI2mm.nii.gz"))
 
     # Check classification overview file
-    true_classification_overview = pd.read_csv(join(resources_path, "classification_overview.txt"),
-                                               sep="\t",
-                                               index_col="IC",
-                                               nrows=4,)
-    classification_overview = pd.read_csv(
-        join(out_path, "classification_overview.txt"), sep="\t", index_col="IC", nrows=4
+    true_classification_overview = pd.read_table(
+        join(resources_path, "classification_overview.txt"),
+        index_col="IC",
+        nrows=4,
+    )
+    classification_overview = pd.read_table(
+        join(out_path, "desc-AROMA_metrics.tsv"),
+        index_col="IC",
+        nrows=4,
     )
 
     assert np.allclose(true_classification_overview.iloc[:, :-1].values,
                        classification_overview.iloc[:, :-1].values,
                        atol=0.9)
+    assert np.array_equal(
+        true_classification_overview["classification"].values,
+        classification_overview["classification"].values,
+    )
 
     #  Check feature scores
-    f_scores = pd.read_table(join(out_path, "feature_scores.tsv"))
+    f_scores = classification_overview[["edge_fract", "csf_fract", "max_RP_corr", "HFC"]]
     f_true = pd.read_table(join(resources_path, "feature_scores.txt"))
     assert np.allclose(f_true.values, f_scores.values, atol=0.9)
 
