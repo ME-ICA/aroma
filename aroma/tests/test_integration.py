@@ -57,25 +57,20 @@ def test_integration(skip_integration, nilearn_data):
     true_classification_overview = pd.read_table(
         join(resources_path, "classification_overview.txt"),
         index_col="IC",
-        nrows=4,
     )
     classification_overview = pd.read_table(
         join(out_path, "desc-AROMA_metrics.tsv"),
         index_col="IC",
-        nrows=4,
     )
 
-    assert np.allclose(true_classification_overview.iloc[:, :-1].values,
-                       classification_overview.iloc[:, :-1].values,
-                       atol=0.9)
-    assert np.array_equal(
-        true_classification_overview["classification"].values,
-        classification_overview["classification"].values,
+    assert (
+        true_classification_overview["classification"].tolist()
+        == classification_overview["classification"].tolist()
     )
 
     #  Check feature scores
     f_scores = classification_overview[["edge_fract", "csf_fract", "max_RP_corr", "HFC"]]
-    f_true = pd.read_table(join(resources_path, "feature_scores.txt"))
+    f_true = true_classification_overview[["edge_fract", "csf_fract", "max_RP_corr", "HFC"]]
     assert np.allclose(f_true.values, f_scores.values, atol=0.9)
 
     # Check motion ICs
