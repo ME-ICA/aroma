@@ -11,7 +11,7 @@ from .utils import cross_correlation, get_resource_path
 LGR = logging.getLogger(__name__)
 
 
-def feature_time_series(mel_mix, mc, metric_metadata):
+def feature_time_series(mel_mix, mc, metric_metadata=None):
     """Extract maximum motion parameter correlation scores from components.
 
     This function determines the maximum robust correlation of each component
@@ -27,32 +27,42 @@ def feature_time_series(mel_mix, mc, metric_metadata):
         Motion parameters are (time x 6), with the first three columns being
         rotation parameters (in radians) and the final three being translation
         parameters (in mm).
+    metric_metadata : None or dict, optional
+        A dictionary containing metadata about the AROMA metrics.
+        If provided, metadata for the ``max_RP_corr`` metric will be added.
+        Otherwise, no operations will be performed on this parameter.
 
     Returns
     -------
     max_RP_corr : array_like
         Array of the maximum RP correlation feature scores for the components
         of the melodic_mix file.
+    metric_metadata : None or dict
+        If the ``metric_metadata`` input was None, then None will be returned.
+        Otherwise, this will be a dictionary containing existing information,
+        as well as new metadata for the ``max_RP_corr`` metric.
     """
-    metric_metadata["max_RP_corr"] = {
-        "LongName": "Maximum motion parameter correlation",
-        "Description": (
-            "The maximum correlation coefficient between each component and "
-            "a set of 36 regressors derived from the motion parameters. "
-            "The derived regressors are the raw six motion parameters (6), their derivatives (6), "
-            "the parameters and their derivatives time-shifted one TR forward (12), and "
-            "the parameters and their derivatives time-shifted one TR backward (12). "
-            "The correlations are performed on a series of 1000 permutations, "
-            "in which 90 percent of the volumes are selected from both the "
-            "component time series and the motion parameters. "
-            "The correlation is performed between each permuted component time series and "
-            "each permuted regressor in the motion parameter model, "
-            "as well as the squared versions of both. "
-            "The maximum correlation coefficient from each permutation is retained and these "
-            "correlation coefficients are averaged across permutations for the final metric."
-        ),
-        "Units": "arbitrary",
-    }
+    if metric_metadata:
+        metric_metadata["max_RP_corr"] = {
+            "LongName": "Maximum motion parameter correlation",
+            "Description": (
+                "The maximum correlation coefficient between each component and "
+                "a set of 36 regressors derived from the motion parameters. "
+                "The derived regressors are the raw six motion parameters (6), "
+                "their derivatives (6), "
+                "the parameters and their derivatives time-shifted one TR forward (12), and "
+                "the parameters and their derivatives time-shifted one TR backward (12). "
+                "The correlations are performed on a series of 1000 permutations, "
+                "in which 90 percent of the volumes are selected from both the "
+                "component time series and the motion parameters. "
+                "The correlation is performed between each permuted component time series and "
+                "each permuted regressor in the motion parameter model, "
+                "as well as the squared versions of both. "
+                "The maximum correlation coefficient from each permutation is retained and these "
+                "correlation coefficients are averaged across permutations for the final metric."
+            ),
+            "Units": "arbitrary",
+        }
 
     # Read melodic mix file (IC time-series), subsequently define a set of
     # squared time-series
@@ -115,7 +125,7 @@ def feature_time_series(mel_mix, mc, metric_metadata):
     return max_RP_corr, metric_metadata
 
 
-def feature_frequency(mel_FT_mix, TR, metric_metadata):
+def feature_frequency(mel_FT_mix, TR, metric_metadata=None):
     """Extract the high-frequency content feature scores.
 
     This function determines the frequency, as fraction of the Nyquist
@@ -130,20 +140,29 @@ def feature_frequency(mel_FT_mix, TR, metric_metadata):
         ranging from 0 Hz to Nyquist frequency.
     TR : float
         TR (in seconds) of the fMRI data
+    metric_metadata : None or dict, optional
+        A dictionary containing metadata about the AROMA metrics.
+        If provided, metadata for the ``HFC`` metric will be added.
+        Otherwise, no operations will be performed on this parameter.
 
     Returns
     -------
     HFC : array_like
         Array of the HFC ('High-frequency content') feature scores
         for the components of the melodic_FTmix file
+    metric_metadata : None or dict
+        If the ``metric_metadata`` input was None, then None will be returned.
+        Otherwise, this will be a dictionary containing existing information,
+        as well as new metadata for the ``HFC`` metric.
     """
-    metric_metadata["HFC"] = {
-        "LongName": "High-frequency content",
-        "Description": (
-            "The proportion of the power spectrum for each component that falls above 0.01 Hz."
-        ),
-        "Units": "arbitrary",
-    }
+    if metric_metadata:
+        metric_metadata["HFC"] = {
+            "LongName": "High-frequency content",
+            "Description": (
+                "The proportion of the power spectrum for each component that falls above 0.01 Hz."
+            ),
+            "Units": "arbitrary",
+        }
 
     # Determine sample frequency
     Fs = 1 / TR
@@ -182,7 +201,7 @@ def feature_frequency(mel_FT_mix, TR, metric_metadata):
     return HFC, metric_metadata
 
 
-def feature_spatial(mel_IC, metric_metadata):
+def feature_spatial(mel_IC, metric_metadata=None):
     """Extract the spatial feature scores.
 
     For each IC it determines the fraction of the mixture modeled thresholded
@@ -194,6 +213,11 @@ def feature_spatial(mel_IC, metric_metadata):
     mel_IC : str
         Full path of the nii.gz file containing mixture-modeled thresholded
         (p<0.5) Z-maps, registered to the MNI152 2mm template
+    metric_metadata : None or dict, optional
+        A dictionary containing metadata about the AROMA metrics.
+        If provided, metadata for the ``edge_fract`` and ``csf_fract`` metrics
+        will be added.
+        Otherwise, no operations will be performed on this parameter.
 
     Returns
     -------
@@ -203,35 +227,43 @@ def feature_spatial(mel_IC, metric_metadata):
     csf_fract : array_like
         Array of the CSF fraction feature scores for the components of the
         mel_IC file
+    metric_metadata : None or dict
+        If the ``metric_metadata`` input was None, then None will be returned.
+        Otherwise, this will be a dictionary containing existing information,
+        as well as new metadata for the ``edge_fract`` and ``csf_fract``
+        metrics.
     """
-    metric_metadata["edge_fract"] = {
-        "LongName": "Edge content fraction",
-        "Description": (
-            "The fraction of thresholded component z-values at the edge of the brain. "
-            "This is calculated by "
-            "(1) taking the absolute value of the thresholded Z map for each component, "
-            "(2) summing z-statistics from the whole brain, "
-            "(3) summing z-statistics from outside of the brain, "
-            "(4) summing z-statistics from voxels in CSF compartments, "
-            "(5) summing z-statistics from voxels at the edge of the brain, "
-            "(6) adding the sums from outside of the brain and the edge of the brain, "
-            "(7) subtracting the CSF sum from the total brain sum, and "
-            "(8) dividing the out-of-brain+edge-of-brain sum by the whole brain (minus CSF) sum."
-        ),
-        "Units": "arbitrary",
-    }
-    metric_metadata["csf_fract"] = {
-        "LongName": "CSF content fraction",
-        "Description": (
-            "The fraction of thresholded component z-values in the brain's cerebrospinal fluid. "
-            "This is calculated by "
-            "(1) taking the absolute value of the thresholded Z map for each component, "
-            "(2) summing z-statistics from the whole brain, "
-            "(3) summing z-statistics from voxels in CSF compartments, and "
-            "(4) dividing the CSF z-statistic sum by the whole brain z-statistic sum."
-        ),
-        "Units": "arbitrary",
-    }
+    if metric_metadata:
+        metric_metadata["edge_fract"] = {
+            "LongName": "Edge content fraction",
+            "Description": (
+                "The fraction of thresholded component z-values at the edge of the brain. "
+                "This is calculated by "
+                "(1) taking the absolute value of the thresholded Z map for each component, "
+                "(2) summing z-statistics from the whole brain, "
+                "(3) summing z-statistics from outside of the brain, "
+                "(4) summing z-statistics from voxels in CSF compartments, "
+                "(5) summing z-statistics from voxels at the edge of the brain, "
+                "(6) adding the sums from outside of the brain and the edge of the brain, "
+                "(7) subtracting the CSF sum from the total brain sum, and "
+                "(8) dividing the out-of-brain+edge-of-brain sum by the whole brain (minus CSF) "
+                "sum."
+            ),
+            "Units": "arbitrary",
+        }
+        metric_metadata["csf_fract"] = {
+            "LongName": "CSF content fraction",
+            "Description": (
+                "The fraction of thresholded component z-values in the brain's cerebrospinal "
+                "fluid. "
+                "This is calculated by "
+                "(1) taking the absolute value of the thresholded Z map for each component, "
+                "(2) summing z-statistics from the whole brain, "
+                "(3) summing z-statistics from voxels in CSF compartments, and "
+                "(4) dividing the CSF z-statistic sum by the whole brain z-statistic sum."
+            ),
+            "Units": "arbitrary",
+        }
 
     # Get the number of ICs
     mel_IC_img = nib.load(mel_IC)

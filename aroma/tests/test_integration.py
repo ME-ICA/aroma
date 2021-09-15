@@ -1,14 +1,15 @@
+"""Integration tests for aroma."""
+from os.path import isfile, join, split
+
 import numpy as np
 import pandas as pd
-from os.path import join, split, isfile
-
+import pytest
 from aroma.aroma import aroma_workflow
 from aroma.tests.utils import get_tests_resource_path
 
-import pytest
-
 
 def test_integration(skip_integration, nilearn_data):
+    """Perform integration test."""
     if skip_integration:
         pytest.skip("Skipping integration test")
 

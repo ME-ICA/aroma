@@ -1,12 +1,10 @@
+"""Tests for the features module."""
 import numpy as np
-import os.path as op
-import pandas as pd
-
 from aroma import features
 
 
 def test_feature_time_series(mel_mix, mc, max_correls):
-
+    """Test the feature_time_series feature against pre-calculated values."""
     np.random.seed(1)
 
     # Run feature_time_series
@@ -19,7 +17,7 @@ def test_feature_time_series(mel_mix, mc, max_correls):
 
 
 def test_feature_frequency(mel_FT_mix, HFC):
-
+    """Test the feature_frequency feature against pre-calculated values."""
     np.random.seed(1)
 
     # Run feature_frequency
@@ -32,7 +30,7 @@ def test_feature_frequency(mel_FT_mix, HFC):
 
 
 def test_feature_spatial(mel_IC, edgeFract, csfFract):
-
+    """Test the feature_spatial features against pre-calculated values."""
     np.random.seed(1)
 
     # Run feature_spatial

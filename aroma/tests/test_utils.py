@@ -1,12 +1,10 @@
+"""Tests for the aroma utils module."""
 import numpy as np
-
-import pytest
-
 from aroma import utils
 
 
 def test_cross_correlation():
-
+    """Unit test for the cross-correlation function."""
     np.random.seed(5)
     a = np.random.rand(4, 4)
     b = np.random.rand(2, 4)
