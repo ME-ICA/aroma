@@ -314,6 +314,7 @@ def classification(features_df, out_dir, metric_metadata):
         "Levels": {
             "accepted": "A component that is determined not to be associated with motion.",
             "rejected": "A motion-related component.",
+        },
     }
     metric_metadata["rationale"] = {
         "LongName": "Rationale for component classification",
@@ -323,8 +324,8 @@ def classification(features_df, out_dir, metric_metadata):
             "they are listed sequentially, separated by semicolons."
         ),
         "Levels": {
-            "CSF": "The csf_fract value is higher than {}".format(THR_CSF),
-            "HFC": "The HFC value is higher than {}".format(THR_HFC),
+            "CSF": f"The csf_fract value is higher than {THR_CSF}",
+            "HFC": f"The HFC value is higher than {THR_HFC}",
             "hyperplane": (
                 "After the max_RP_corr and edge_fract values are projected "
                 "to a hyperplane, the projected point is less than zero."
