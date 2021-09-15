@@ -53,7 +53,7 @@ def test_integration(skip_integration, nilearn_data):
     assert isfile(join(out_path, "melodic_IC_thr.nii.gz"))
     assert isfile(join(out_path, "melodic_IC_thr_MNI2mm.nii.gz"))
 
-    # Check classification overview file
+    # Load classification overview file
     true_classification_overview = pd.read_table(
         join(resources_path, "classification_overview.txt"),
         index_col="IC",
@@ -63,6 +63,7 @@ def test_integration(skip_integration, nilearn_data):
         index_col="IC",
     )
 
+    # Check classifications
     assert (
         true_classification_overview["classification"].tolist()
         == classification_overview["classification"].tolist()
