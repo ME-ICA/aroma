@@ -8,7 +8,7 @@ import shutil
 import nibabel as nib
 import pandas as pd
 
-from aroma import utils, features, _version
+from aroma import _version, features, utils
 
 LGR = logging.getLogger(__name__)
 
@@ -28,7 +28,8 @@ def aroma_workflow(
     overwrite=False,
     generate_plots=True,
     debug=False,
-    quiet=False
+    quiet=False,
+    mc_source="auto",
 ):
     """Run the AROMA workflow.
 
@@ -234,6 +235,7 @@ def aroma_workflow(
 
     LGR.info("  - extracting the Maximum RP correlation feature")
     mel_mix = op.join(out_dir, "melodic.ica", "melodic_mix")
+    mc = utils.load_motpars(mc, source=mc_source)
     features_df["max_RP_corr"], metric_metadata = features.feature_time_series(mel_mix, mc, metric_metadata)
 
     LGR.info("  - extracting the High-frequency content feature")
