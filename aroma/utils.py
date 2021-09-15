@@ -1,4 +1,5 @@
 """Utility functions for ICA-AROMA."""
+import json
 import logging
 import os
 import os.path as op
@@ -374,7 +375,10 @@ def classification(features_df, out_dir, metric_metadata):
         out_file, sep="\t", index_label="IC"
     )
 
-    return motion_ICs, metric_metadata
+    with open(op.join(out_dir, "desc-AROMA_metrics.json"), "w") as fo:
+        json.dump(metric_metadata, fo, sort_keys=True, indent=4)
+
+    return motion_ICs
 
 
 def denoising(fsl_dir, in_file, out_dir, mixing, den_type, den_idx):
