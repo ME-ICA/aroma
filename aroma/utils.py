@@ -7,6 +7,7 @@ import nibabel as nib
 import numpy as np
 import pandas as pd
 from nilearn import masking
+from nilearn._utils import load_niimg
 
 LGR = logging.getLogger(__name__)
 
@@ -99,19 +100,17 @@ def classification(features_df, out_dir):
     return motion_ICs
 
 
-def denoising(fsl_dir, in_file, out_dir, mixing, den_type, den_idx):
+def denoising(in_file, out_dir, mixing, den_type, den_idx):
     """Remove noise components from fMRI data.
 
     Parameters
     ----------
-    fsl_dir : str
-        Full path of the bin-directory of FSL
     in_file : str
         Full path to the data file (nii.gz) which has to be denoised
     out_dir : str
         Full path of the output directory
-    mixing : str
-        Full path of the melodic_mix text file
+    mixing : numpy.ndarray of shape (T, C)
+        Mixing matrix.
     den_type : {"aggr", "nonaggr", "both"}
         Type of requested denoising ('aggr': aggressive, 'nonaggr':
         non-aggressive, 'both': both aggressive and non-aggressive
@@ -130,11 +129,10 @@ def denoising(fsl_dir, in_file, out_dir, mixing, den_type, den_idx):
     aggr_denoised_file = op.join(out_dir, "denoised_func_data_aggr.nii.gz")
 
     if motion_components_found:
-        mixing = np.loadtxt(mixing)
         motion_components = mixing[:, den_idx]
 
         # Create a fake mask to make it easier to reshape the full data to 2D
-        img = nib.load(in_file)
+        img = load_niimg(in_file)
         full_mask = nib.Nifti1Image(np.ones(img.shape[:3], int), img.affine)
         data = masking.apply_mask(img, full_mask)  # T x S
 
