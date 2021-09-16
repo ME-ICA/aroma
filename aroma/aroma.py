@@ -18,7 +18,6 @@ def aroma_workflow(
     mc,
     mixing,
     component_maps,
-    mask,
     out_dir,
     den_type="nonaggr",
     TR=None,
@@ -40,8 +39,6 @@ def aroma_workflow(
         Path to mixing matrix.
     component_maps : str
         Path to thresholded z-statistic component maps.
-    mask : str
-        Path to binary brain mask, in MNI space.
     out_dir : str
         Output directory.
     den_type : {"nonaggr", "aggr", "both", "no"}, optional
@@ -113,10 +110,6 @@ def aroma_workflow(
     version_number = _version.get_versions()['version']
     LGR.info(f'Currently running ICA-AROMA version {version_number}')
 
-    # Check if the mask exists, when specified.
-    if mask and not op.isfile(mask):
-        raise Exception("The specified mask does not exist.")
-
     # Check if the type of denoising is correctly specified, when specified
     if den_type not in ("nonaggr", "aggr", "both", "no"):
         LGR.warning(
@@ -145,10 +138,6 @@ def aroma_workflow(
             "argument.\n"
             "-------------- ICA-AROMA IS CANCELED ------------\n"
         )
-
-    # Save a copy of the mask in the output directory
-    new_mask = op.join(out_dir, "mask.nii.gz")
-    shutil.copyfile(mask, new_mask)
 
     LGR.info("  - extracting the CSF & Edge fraction features")
     features_df = pd.DataFrame()
