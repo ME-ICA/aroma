@@ -340,22 +340,24 @@ def get_spectrum(data: np.array, tr: float):
 
     Parameters
     ----------
-    data : (S, T) array_like
-        A timeseries S, on which you would like to perform an fft.
+    data : numpy.ndarray of shape (T, C) or (T,)
+        A time series of shape T (time) by C (component),
+        on which you would like to perform an fft.
     tr : :obj:`float`
         Repetition time (TR) of the data, in seconds.
 
     Returns
     -------
-    power_spectrum : numpy.ndarray of shape (S, F)
-        Power spectrum of the input time series. S is sample, F is frequency.
+    power_spectrum : numpy.ndarray of shape (F, C)
+        Power spectrum of the input time series. C is component, F is frequency.
     freqs : numpy.ndarray of shape (F,)
         Frequencies corresponding to the columns of power_spectrum.
     """
-    assert data.ndim <= 2
-    data = np.atleast_2d(data)
+    assert data.ndim <= 2, data.ndim
+    if data.ndim == 1:
+        data = data[:, None]
 
-    power_spectrum = np.abs(np.fft.rfft(data, axis=1)) ** 2
-    freqs = np.fft.rfftfreq((power_spectrum.shape[1] * 2) - 1, tr)
+    power_spectrum = np.abs(np.fft.rfft(data, axis=0)) ** 2
+    freqs = np.fft.rfftfreq((power_spectrum.shape[0] * 2) - 1, tr)
     idx = np.argsort(freqs)
-    return power_spectrum[:, idx], freqs[idx]
+    return power_spectrum[idx, :], freqs[idx]
