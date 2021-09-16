@@ -145,8 +145,8 @@ def aroma_workflow(
     motion_params = utils.load_motpars(mc, source=mc_source)  # T x 6
     mixing = np.loadtxt(mixing)  # C x T
     component_maps = nib.load(component_maps)  # X x Y x Z x C
-    assert mixing.shape[0] == component_maps.shape[3]
-    assert mixing.shape[1] == motion_params.shape[0]
+    assert mixing.shape[0] == component_maps.shape[3], f"{mixing.shape}, {component_maps.shape}"
+    assert mixing.shape[1] == motion_params.shape[0], f"{mixing.shape}, {motion_params.shape}"
 
     LGR.info("  - extracting the CSF & Edge fraction features")
     features_df = pd.DataFrame()
