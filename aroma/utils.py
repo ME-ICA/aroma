@@ -333,3 +333,29 @@ def get_resource_path():
         Absolute path to resources folder.
     """
     return op.abspath(op.join(op.dirname(__file__), "resources") + op.sep)
+
+
+def get_spectrum(data: np.array, tr: float):
+    """Return the power spectrum and corresponding frequencies of a time series.
+
+    Parameters
+    ----------
+    data : (S, T) array_like
+        A timeseries S, on which you would like to perform an fft.
+    tr : :obj:`float`
+        Repetition time (TR) of the data, in seconds.
+
+    Returns
+    -------
+    power_spectrum : numpy.ndarray of shape (S, F)
+        Power spectrum of the input time series. S is sample, F is frequency.
+    freqs : numpy.ndarray of shape (F,)
+        Frequencies corresponding to the columns of power_spectrum.
+    """
+    assert data.ndim <= 2
+    data = np.atleast_2d(data)
+
+    power_spectrum = np.abs(np.fft.rfft(data, axis=1)) ** 2
+    freqs = np.fft.rfftfreq((power_spectrum.shape[1] * 2) - 1, tr)
+    idx = np.argsort(freqs)
+    return power_spectrum[:, idx], freqs[idx]

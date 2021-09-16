@@ -6,6 +6,7 @@ import os.path as op
 import shutil
 
 import nibabel as nib
+import numpy as np
 import pandas as pd
 
 from aroma import _version, features, utils
@@ -107,6 +108,7 @@ def aroma_workflow(
         logging.basicConfig(level=logging.INFO,
                             handlers=[log_handler, sh],
                             format='%(levelname)-10s %(message)s')
+
     version_number = _version.get_versions()['version']
     LGR.info(f'Currently running ICA-AROMA version {version_number}')
 
@@ -139,6 +141,13 @@ def aroma_workflow(
             "-------------- ICA-AROMA IS CANCELED ------------\n"
         )
 
+    # Load more inputs
+    motion_params = utils.load_motpars(mc, source=mc_source)  # T x 6
+    mixing = np.loadtxt(mixing)  # C x T
+    component_maps = nib.load(component_maps)  # X x Y x Z x C
+    assert mixing.shape[0] == component_maps.shape[3]
+    assert mixing.shape[1] == motion_params.shape[0]
+
     LGR.info("  - extracting the CSF & Edge fraction features")
     features_df = pd.DataFrame()
     features_df["edge_fract"], features_df["csf_fract"] = features.feature_spatial(
@@ -146,11 +155,11 @@ def aroma_workflow(
     )
 
     LGR.info("  - extracting the Maximum RP correlation feature")
-    mc = utils.load_motpars(mc, source=mc_source)
-    features_df["max_RP_corr"] = features.feature_time_series(mixing, mc)
+    features_df["max_RP_corr"] = features.feature_time_series(mixing, motion_params)
 
     LGR.info("  - extracting the High-frequency content feature")
-    mel_FT_mix = utils.calculate_ft(mixing, TR)
+    # Should probably check that the frequencies match up with MELODIC's outputs
+    mel_FT_mix, FT_freqs = utils.get_spectrum(mixing, TR)
     features_df["HFC"] = features.feature_frequency(mel_FT_mix, TR)
 
     LGR.info("  - classification")
