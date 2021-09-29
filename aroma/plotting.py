@@ -2,12 +2,12 @@
 import logging
 import os
 
-import pandas as pd
-import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-from matplotlib import gridspec
+import numpy as np
+import pandas as pd
 import seaborn as sns
+from matplotlib import gridspec
 
 mpl.use('Agg')
 LGR = logging.getLogger(__name__)
@@ -23,7 +23,9 @@ def classification_plot(in_file, out_dir):
     out_dir : str
         Output directory.
     """
-    assert isinstance(in_file, str)
+    if not os.path.isfile(in_file):
+        raise FileNotFoundError(f"Input file does not exist: {in_file}")
+
     df = pd.read_table(in_file)
     motion_components_df = df.loc[df["classification"] == "rejected"]
 

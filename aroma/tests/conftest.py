@@ -1,9 +1,9 @@
 import os.path as op
-import pytest
-
-from nilearn.datasets import fetch_development_fmri
 
 import aroma
+import numpy as np
+import pytest
+from nilearn.datasets import fetch_development_fmri
 
 
 def pytest_addoption(parser):
@@ -22,7 +22,7 @@ def skip_integration(request):
 
 @pytest.fixture(scope="session")
 def testpath(tmp_path_factory):
-    """ Test path that will be used to download all files """
+    """Test path that will be used to download all files."""
     return tmp_path_factory.getbasetemp()
 
 
@@ -40,14 +40,16 @@ def nilearn_data(testpath):
 # python2 ICA_AROMA.py -o out -i
 # sub-pixar123_task-pixar_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz
 # -mc mc.tsv -tr 2 -np
+
+
 @pytest.fixture
 def mel_FT_mix(featurespath):
-    return op.join(featurespath, 'melodic_FTmix')
+    return np.loadtxt(op.join(featurespath, 'melodic_FTmix'))
 
 
 @pytest.fixture
 def mel_mix(featurespath):
-    return op.join(featurespath, 'melodic_mix')
+    return np.loadtxt(op.join(featurespath, 'melodic_mix'))
 
 
 @pytest.fixture
