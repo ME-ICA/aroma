@@ -122,6 +122,14 @@ def classification(features_df, out_dir, metric_metadata):
     features_df.loc[rej_hyperplane, "classification"] = "rejected"
     features_df.loc[rej_hyperplane, "rationale"] += "hyperplane;"
 
+    # Classify the ICs
+    is_motion = (
+        (features_df["csf_fract"] > THR_CSF)
+        | (features_df["HFC"] > THR_HFC)
+        | (proj > 0)
+    )
+    assert np.array_equal(is_motion, (features_df["classification"] == "rejected").values)
+
     # Reorder columns and remove trailing semicolons
     features_df = clean_dataframe(features_df)
 
