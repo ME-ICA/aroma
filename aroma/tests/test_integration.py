@@ -1,4 +1,4 @@
-from os.path import isfile, join, split
+from os.path import abspath, isfile, join, split
 
 import numpy as np
 import pandas as pd
@@ -47,6 +47,7 @@ def test_integration(skip_integration, nilearn_data):
     assert isfile(join(out_path, "classified_motion_ICs.txt"))
     assert isfile(join(out_path, "denoised_func_data_nonaggr.nii.gz"))
     assert isfile(join(out_path, "feature_scores.tsv"))
+    raise Exception(abspath(out_path))
 
     # Check classification overview file
     true_classification_overview = pd.read_csv(join(resources_path, "classification_overview.txt"),
