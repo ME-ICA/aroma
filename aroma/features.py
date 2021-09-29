@@ -37,9 +37,15 @@ def feature_time_series(mel_mix, mc):
         rp6 = utils.load_motpars(mc, source="auto")
     else:
         rp6 = mc
-    assert (rp6.ndim == 2) and (rp6.shape[1] == 6), "Wrong shape"
 
-    assert rp6.shape[0] == mel_mix.shape[0]
+    if (rp6.ndim == 2) or (rp6.shape[1] == 6):
+        raise ValueError(f"Motion parameters must of shape (n_trs, 6), not {rp6.shape}")
+
+    if rp6.shape[0] != mel_mix.shape[0]:
+        raise ValueError(
+            f"Number of rows in mixing matrix ({mel_mix.shape[0]}) does not match "
+            f"number of rows in motion parameters ({rp6.shape[0]})."
+        )
 
     # Determine the derivatives of the RPs (add zeros at time-point zero)
     _, nparams = rp6.shape

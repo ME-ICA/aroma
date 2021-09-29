@@ -54,10 +54,17 @@ def aroma_workflow(
     mc_source : {"auto"}, optional
         What format is the mc file in?
     """
-    assert op.isfile(in_file)
-    assert op.isfile(mc)
-    assert op.isfile(mixing)
-    assert op.isfile(component_maps)
+    if not op.isfile(in_file):
+        raise FileNotFoundError(f"Input file does not exist: {in_file}")
+
+    if not op.isfile(mc):
+        raise FileNotFoundError(f"Motion parameters file does not exist: {mc}")
+
+    if not op.isfile(mixing):
+        raise FileNotFoundError(f"Mixing matrix file does not exist: {mixing}")
+
+    if not op.isfile(component_maps):
+        raise FileNotFoundError(f"Component maps file does not exist: {component_maps}")
 
     # Create output directory if needed
     if op.isdir(out_dir) and not overwrite:
@@ -145,8 +152,17 @@ def aroma_workflow(
     motion_params = utils.load_motpars(mc, source=mc_source)  # T x 6
     mixing = np.loadtxt(mixing)  # T x C
     component_maps = nib.load(component_maps)  # X x Y x Z x C
-    assert mixing.shape[1] == component_maps.shape[3], f"{mixing.shape}, {component_maps.shape}"
-    assert mixing.shape[0] == motion_params.shape[0], f"{mixing.shape}, {motion_params.shape}"
+    if mixing.shape[1] != component_maps.shape[3]:
+        raise ValueError(
+            f"Number of columns in mixing matrix ({mixing.shape[1]}) does not match "
+            f"fourth dimension of component maps file ({component_maps.shape[3]})."
+        )
+
+    if mixing.shape[0] != motion_params.shape[0]:
+        raise ValueError(
+            f"Number of rows in mixing matrix ({mixing.shape[0]}) does not match "
+            f"number of rows in motion parameters ({motion_params.shape[0]})."
+        )
 
     LGR.info("  - extracting the CSF & Edge fraction features")
     features_df = pd.DataFrame()

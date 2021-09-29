@@ -27,7 +27,12 @@ def cross_correlation(a, b):
     correlations : (M x N) array_like
         Cross-correlations of columns of a against columns of b.
     """
-    assert a.ndim == b.ndim == 2
+    if a.ndim != 2:
+        raise ValueError(f"Input `a` must be 2D, not {a.ndim}D")
+
+    if b.ndim != 2:
+        raise ValueError(f"Input `b` must be 2D, not {b.ndim}D")
+
     _, ncols_a = a.shape
     # nb variables in columns rather than rows hence transpose
     # extract just the cross terms between cols in a and cols in b
@@ -351,7 +356,9 @@ def get_spectrum(data: np.array, tr: float):
     freqs : numpy.ndarray of shape (F,)
         Frequencies corresponding to the columns of power_spectrum.
     """
-    assert data.ndim <= 2, data.ndim
+    if data.ndim > 2:
+        raise ValueError(f"Input `data` must be 1D or 2D, not {data.ndim}D")
+
     if data.ndim == 1:
         data = data[:, None]
 
