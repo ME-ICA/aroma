@@ -46,9 +46,8 @@ def test_integration(skip_integration, nilearn_data):
 
     # Make sure files are generated
     assert isfile(join(out_path, "desc-AROMA_metrics.tsv"))
-    assert isfile(join(out_path, "classified_motion_ICs.txt"))
-    assert isfile(join(out_path, "denoised_func_data_nonaggr.nii.gz"))
-    assert isfile(join(out_path, "feature_scores.tsv"))
+    assert isfile(join(out_path, "AROMAnoiseICs.csv"))
+    assert isfile(join(out_path, "desc-smoothAROMAnonaggr_bold.nii.gz"))
 
     # Load classification overview file
     true_classification_overview = pd.read_table(
@@ -72,8 +71,8 @@ def test_integration(skip_integration, nilearn_data):
     assert np.allclose(f_true.values, f_scores.values, atol=0.9)
 
     # Check motion ICs
-    mot_ics = np.loadtxt(join(out_path, "classified_motion_ICs.txt"), delimiter=",")
+    mot_ics = np.loadtxt(join(out_path, "AROMAnoiseICs.csv"), delimiter=",")
     true_mot_ics = np.loadtxt(
-        join(resources_path, "classified_motion_ICs.txt"), delimiter=","
+        join(resources_path, "AROMAnoiseICs.csv"), delimiter=","
     )
     assert np.allclose(true_mot_ics[:4], mot_ics[:4])

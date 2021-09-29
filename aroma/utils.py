@@ -62,8 +62,8 @@ def classification(features_df, out_dir, metric_metadata):
 
     Output
     ------
-    classified_motion_ICs.txt : A text file containing the indices of the
-                                components identified as motion components
+    AROMAnoiseICs.csv : A text file containing the indices of the
+                        components identified as motion components
     desc-AROMA_metrics.tsv
     desc-AROMA_metrics.json
     """
@@ -128,7 +128,8 @@ def classification(features_df, out_dir, metric_metadata):
     # Put the indices of motion-classified ICs in a text file (starting with 1)
     motion_ICs = features_df["classification"][features_df["classification"] == "rejected"].index
     motion_ICs = motion_ICs.values
-    with open(op.join(out_dir, "classified_motion_ICs.txt"), "w") as fo:
+
+    with open(op.join(out_dir, "AROMAnoiseICs.csv"), "w") as fo:
         out_str = ",".join(motion_ICs.astype(str))
         fo.write(out_str)
 
@@ -161,14 +162,13 @@ def denoising(in_file, out_dir, mixing, den_type, den_idx):
 
     Output
     ------
-    denoised_func_data_<den_type>.nii.gz : The denoised fMRI data
+    desc-smoothAROMA<den_type>_bold.nii.gz : The denoised fMRI data
     """
     # Check if denoising is needed (i.e. are there motion components?)
     motion_components_found = den_idx.size > 0
 
-    nonaggr_denoised_file = op.join(out_dir,
-                                    "denoised_func_data_nonaggr.nii.gz")
-    aggr_denoised_file = op.join(out_dir, "denoised_func_data_aggr.nii.gz")
+    nonaggr_denoised_file = op.join(out_dir, "desc-smoothAROMAnonaggr_bold.nii.gz")
+    aggr_denoised_file = op.join(out_dir, "desc-smoothAROMAaggr_bold.nii.gz")
 
     if motion_components_found:
         motion_components = mixing[:, den_idx]
