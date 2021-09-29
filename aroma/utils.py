@@ -119,7 +119,6 @@ def classification(features_df, out_dir, metric_metadata):
     x = features_df[["max_RP_corr", "edge_fract"]].values
     proj = HYPERPLANE[0] + np.dot(x, HYPERPLANE[1:])
     rej_hyperplane = proj > 0
-    raise Exception(f"{features_df}\n{rej_hyperplane}")
     features_df.loc[rej_hyperplane, "classification"] = "rejected"
     features_df.loc[rej_hyperplane, "rationale"] += "hyperplane;"
 
