@@ -1,5 +1,5 @@
 """Integration tests for aroma."""
-from os.path import isfile, join, split
+from os.path import abspath, isfile, join, split
 
 import numpy as np
 import pandas as pd
@@ -48,6 +48,7 @@ def test_integration(skip_integration, nilearn_data):
     assert isfile(join(out_path, "desc-AROMA_metrics.tsv"))
     assert isfile(join(out_path, "AROMAnoiseICs.csv"))
     assert isfile(join(out_path, "desc-smoothAROMAnonaggr_bold.nii.gz"))
+    raise Exception(abspath(out_path))
 
     # Load classification overview file
     true_classification_overview = pd.read_table(
