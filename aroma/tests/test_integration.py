@@ -59,16 +59,16 @@ def test_integration(skip_integration, nilearn_data):
         index_col="IC",
     )
 
+    #  Check feature scores
+    f_scores = classification_overview[["edge_fract", "csf_fract", "max_RP_corr", "HFC"]]
+    f_true = true_classification_overview[["edge_fract", "csf_fract", "max_RP_corr", "HFC"]]
+    assert np.allclose(f_true.values, f_scores.values, atol=0.9)
+
     # Check classifications
     assert (
         true_classification_overview["classification"].tolist()
         == classification_overview["classification"].tolist()
     )
-
-    #  Check feature scores
-    f_scores = classification_overview[["edge_fract", "csf_fract", "max_RP_corr", "HFC"]]
-    f_true = true_classification_overview[["edge_fract", "csf_fract", "max_RP_corr", "HFC"]]
-    assert np.allclose(f_true.values, f_scores.values, atol=0.9)
 
     # Check motion ICs
     mot_ics = np.loadtxt(join(out_path, "AROMAnoiseICs.csv"), delimiter=",")
