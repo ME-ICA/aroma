@@ -38,7 +38,7 @@ def feature_time_series(mel_mix, mc):
     else:
         rp6 = mc
 
-    if (rp6.ndim == 2) or (rp6.shape[1] == 6):
+    if (rp6.ndim != 2) or (rp6.shape[1] != 6):
         raise ValueError(f"Motion parameters must of shape (n_trs, 6), not {rp6.shape}")
 
     if rp6.shape[0] != mel_mix.shape[0]:
