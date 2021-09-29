@@ -62,7 +62,7 @@ def test_integration(skip_integration, nilearn_data):
     #  Check feature scores
     f_scores = classification_overview[["edge_fract", "csf_fract", "max_RP_corr", "HFC"]]
     f_true = true_classification_overview[["edge_fract", "csf_fract", "max_RP_corr", "HFC"]]
-    assert np.allclose(f_true.values, f_scores.values)
+    assert np.allclose(f_true.values, f_scores.values), f_true.values - f_scores.values
 
     # Check classifications
     assert (
