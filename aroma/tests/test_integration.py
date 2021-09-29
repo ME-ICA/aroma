@@ -48,8 +48,6 @@ def test_integration(skip_integration, nilearn_data):
     assert isfile(join(out_path, "desc-AROMA_metrics.tsv"))
     assert isfile(join(out_path, "classified_motion_ICs.txt"))
     assert isfile(join(out_path, "denoised_func_data_nonaggr.nii.gz"))
-    assert isfile(join(out_path, "melodic_IC_thr.nii.gz"))
-    assert isfile(join(out_path, "melodic_IC_thr_MNI2mm.nii.gz"))
     assert isfile(join(out_path, "feature_scores.tsv"))
 
     # Load classification overview file
