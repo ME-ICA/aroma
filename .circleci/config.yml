@@ -251,9 +251,9 @@ jobs:
           path: /tmp/src/aroma/docs/_build/html
 
   merge_coverage:
-    working_directory: /tmp/src/aroma
     docker:
       - image: continuumio/miniconda3
+    working_directory: /tmp/src/aroma
     steps:
       - attach_workspace:
           at: /tmp
@@ -263,6 +263,7 @@ jobs:
       - run:
           name: Merge coverage files
           command: |
+            apt-get update
             apt-get install -yqq curl
             source activate aroma_py37  # depends on makeenv37
             cd /tmp/src/coverage/
