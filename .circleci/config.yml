@@ -233,12 +233,11 @@ jobs:
           path: /tmp/data/lint
 
   build_docs:
-    working_directory: /tmp/src/aroma
     docker:
       - image: continuumio/miniconda3
+    working_directory: /tmp/src/aroma
     steps:
-      - attach_workspace:  # get aroma
-          at: /tmp
+      - checkout
       - restore_cache:  # load environment
           key: conda-py37-v2-{{ checksum "setup.cfg" }}
       - run:
