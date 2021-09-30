@@ -190,7 +190,8 @@ def aroma_workflow(
     )
 
     LGR.info("  - classification")
-    motion_ICs = utils.classification(features_df, out_dir, metric_metadata)
+    features_df, metric_metadata = utils.classification(features_df, metric_metadata)
+    motion_ICs = utils.write_metrics(features_df, out_dir, metric_metadata)
 
     if generate_plots:
         from . import plotting

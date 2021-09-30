@@ -40,7 +40,7 @@ def cross_correlation(a, b):
     return np.corrcoef(a.T, b.T)[:ncols_a, ncols_a:]
 
 
-def classification(features_df, out_dir, metric_metadata):
+def classification(features_df, metric_metadata=None):
     """Classify components as motion or non-motion based on four features.
 
     The four features used for classification are: maximum RP correlation,
@@ -48,24 +48,16 @@ def classification(features_df, out_dir, metric_metadata):
 
     Parameters
     ----------
-    features_df : (C x 4) pandas.DataFrame
+    features_df : (C x 4) :obj:`pandas.DataFrame`
         DataFrame with the following columns:
         "edge_fract", "csf_fract", "max_RP_corr", and "HFC".
-    out_dir : str
-        Full path of the output directory
+    metric_metadata : :obj:`dict` or None, optional
+        Metric metadata in a dictionary.
 
     Returns
     -------
-    motion_ICs : array_like
-        Array containing the indices of the components identified as motion
-        components
-
-    Output
-    ------
-    AROMAnoiseICs.csv : A text file containing the indices of the
-                        components identified as motion components
-    desc-AROMA_metrics.tsv
-    desc-AROMA_metrics.json
+    features_df
+    metric_metadata
     """
     # Define criteria needed for classification (thresholds and
     # hyperplane-parameters)
@@ -73,32 +65,33 @@ def classification(features_df, out_dir, metric_metadata):
     THR_HFC = 0.35
     HYPERPLANE = np.array([-19.9751070082159, 9.95127547670627, 24.8333160239175])
 
-    metric_metadata["classification"] = {
-        "LongName": "Component classification",
-        "Description": (
-            "Classification from the classification procedure."
-        ),
-        "Levels": {
-            "accepted": "A component that is determined not to be associated with motion.",
-            "rejected": "A motion-related component.",
-        },
-    }
-    metric_metadata["rationale"] = {
-        "LongName": "Rationale for component classification",
-        "Description": (
-            "The reason for the classification. "
-            "In cases where components are classified based on more than one criterion, "
-            "they are listed sequentially, separated by semicolons."
-        ),
-        "Levels": {
-            "CSF": f"The csf_fract value is higher than {THR_CSF}",
-            "HFC": f"The HFC value is higher than {THR_HFC}",
-            "hyperplane": (
-                "After the max_RP_corr and edge_fract values are projected "
-                "to a hyperplane, the projected point is less than zero."
-            )
+    if isinstance(metric_metadata, dict):
+        metric_metadata["classification"] = {
+            "LongName": "Component classification",
+            "Description": (
+                "Classification from the classification procedure."
+            ),
+            "Levels": {
+                "accepted": "A component that is determined not to be associated with motion.",
+                "rejected": "A motion-related component.",
+            },
         }
-    }
+        metric_metadata["rationale"] = {
+            "LongName": "Rationale for component classification",
+            "Description": (
+                "The reason for the classification. "
+                "In cases where components are classified based on more than one criterion, "
+                "they are listed sequentially, separated by semicolons."
+            ),
+            "Levels": {
+                "CSF": f"The csf_fract value is higher than {THR_CSF}",
+                "HFC": f"The HFC value is higher than {THR_HFC}",
+                "hyperplane": (
+                    "After the max_RP_corr and edge_fract values are projected "
+                    "to a hyperplane, the projected point is less than zero."
+                )
+            }
+        }
 
     # Classify the ICs as motion (rejected) or non-motion (accepted)
     features_df["classification"] = "accepted"
@@ -133,6 +126,35 @@ def classification(features_df, out_dir, metric_metadata):
     # Reorder columns and remove trailing semicolons
     features_df = clean_dataframe(features_df)
 
+    return features_df, metric_metadata
+
+
+def write_metrics(features_df, out_dir, metric_metadata=None):
+    """Write out feature/classification information and metadata.
+
+    Parameters
+    ----------
+    features_df : (C x 5) :obj:`pandas.DataFrame`
+        DataFrame with metric values and classifications.
+        Must have the following columns: "edge_fract", "csf_fract", "max_RP_corr", "HFC", and
+        "classification".
+    out_dir : :obj:`str`
+        Output directory.
+    metric_metadata : :obj:`dict` or None, optional
+        Metric metadata in a dictionary.
+
+    Returns
+    -------
+    motion_ICs : array_like
+        Array containing the indices of the components identified as motion components.
+
+    Output
+    ------
+    AROMAnoiseICs.csv : A text file containing the indices of the
+                        components identified as motion components
+    desc-AROMA_metrics.tsv
+    desc-AROMA_metrics.json
+    """
     # Put the indices of motion-classified ICs in a text file (starting with 1)
     motion_ICs = features_df["classification"][features_df["classification"] == "rejected"].index
     motion_ICs = motion_ICs.values
@@ -145,8 +167,9 @@ def classification(features_df, out_dir, metric_metadata):
     out_file = op.join(out_dir, "desc-AROMA_metrics.tsv")
     features_df.to_csv(out_file, sep="\t", index_label="IC")
 
-    with open(op.join(out_dir, "desc-AROMA_metrics.json"), "w") as fo:
-        json.dump(metric_metadata, fo, sort_keys=True, indent=4)
+    if isinstance(metric_metadata, dict):
+        with open(op.join(out_dir, "desc-AROMA_metrics.json"), "w") as fo:
+            json.dump(metric_metadata, fo, sort_keys=True, indent=4)
 
     return motion_ICs
 
