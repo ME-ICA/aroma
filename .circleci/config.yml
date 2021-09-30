@@ -48,7 +48,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: conda-py37-v1-{{ checksum "setup.cfg" }}
+          key: conda-py37-v2-{{ checksum "setup.cfg" }}
       - run:
           name: Generate environment
           command: |
@@ -58,7 +58,7 @@ jobs:
               pip install -e ".[test,doc]"
             fi
       - save_cache:
-          key: conda-py37-v1-{{ checksum "setup.cfg" }}
+          key: conda-py37-v2-{{ checksum "setup.cfg" }}
           paths:
               - /opt/conda/envs/aroma_py37
 
@@ -69,7 +69,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: conda-py37-v1-{{ checksum "setup.cfg" }}
+          key: conda-py37-v2-{{ checksum "setup.cfg" }}
       - run:
           name: Running unit tests
           command: |
@@ -196,7 +196,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: conda-py37-v1-{{ checksum "setup.cfg" }}
+          key: conda-py37-v2-{{ checksum "setup.cfg" }}
       - run:
           name: Run integration tests
           no_output_timeout: 10m
@@ -221,13 +221,13 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: conda-py37-v1-{{ checksum "setup.cfg" }}
+          key: conda-py37-v2-{{ checksum "setup.cfg" }}
       - run:
           name: Style check
           command: |
             apt-get update
             apt-get install -yqq make
-            source activate aroma_py37  # depends on makeenv37
+            source activate aroma_py37  # depends on makeenv_37
             make lint
       - store_artifacts:
           path: /tmp/data/lint
@@ -240,14 +240,13 @@ jobs:
       - attach_workspace:  # get aroma
           at: /tmp
       - restore_cache:  # load environment
-          key: conda-py37-v1-{{ checksum "setup.cfg" }}
+          key: conda-py37-v2-{{ checksum "setup.cfg" }}
       - run:
           name: Build documentation
           command: |
             apt-get update
             apt-get install -yqq make
             source activate aroma_py37  # depends on makeenv_37
-            pip install sphinx_rtd_theme
             make -C docs html
       - store_artifacts:
           path: /tmp/src/aroma/docs/_build/html
@@ -261,7 +260,7 @@ jobs:
           at: /tmp
       - checkout
       - restore_cache:
-          key: conda-py37-v1-{{ checksum "setup.cfg" }}
+          key: conda-py37-v2-{{ checksum "setup.cfg" }}
       - run:
           name: Merge coverage files
           command: |
