@@ -2,12 +2,12 @@
 import logging
 import os
 
-import pandas as pd
 import numpy as np
+import pandas as pd
+import seaborn as sns
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
-
 mpl.use('Agg')
 LGR = logging.getLogger(__name__)
 
@@ -22,17 +22,10 @@ def classification_plot(in_file, out_dir):
     out_dir : str
         Output directory.
     """
-    try:
-        package = "seaborn"
-        __import__(package)
-        import seaborn as sns
-    except ImportError:
-        LGR.warning("Seaborn is needed for plotting, "
-                    "please install it with sudo pip3 install seaborn.")
-        LGR.warning("Plots will not be generated.")
-        return
 
-    assert isinstance(in_file, str)
+    if not os.path.isfile(in_file):
+        raise FileNotFoundError(f"Input file does not exist: {in_file}")
+
     df = pd.read_csv(in_file, sep="\t", index_col="IC")
     motion_components_df = df.loc[df["classification"] == "rejected"]
 
