@@ -9,7 +9,7 @@ jobs:
 
   makeenv_37:
     docker:
-      - image: nipype/nipype
+      - image: continuumio/miniconda3
     working_directory: /tmp/src/aroma
     steps:
       - checkout
@@ -32,7 +32,7 @@ jobs:
 
   unittest_36:
     docker:
-      - image: nipype/nipype
+      - image: continuumio/miniconda3
     working_directory: /tmp/src/aroma
     steps:
       - checkout
@@ -65,7 +65,7 @@ jobs:
 
   unittest_37:
     docker:
-      - image: nipype/nipype
+      - image: continuumio/miniconda3
     working_directory: /tmp/src/aroma
     steps:
       - checkout
@@ -84,9 +84,61 @@ jobs:
           paths:
               - src/coverage/.coverage.py37
 
+  unittest_38:
+    docker:
+      - image: continuumio/miniconda3
+    working_directory: /tmp/src/aroma
+    steps:
+      - checkout
+      - run:
+          name: Generate environment
+          command: |
+            # apt-get install -yqq make
+            conda create -yq -n aroma_py38 python=3.8
+            source activate aroma_py38
+            pip install -e ".[test]"
+      - run:
+          name: Running unit tests
+          command: |
+            # apt-get install -yqq make
+            source activate /opt/miniconda-latest/envs/aroma_py38
+            make unittest
+            mkdir /tmp/src/coverage
+            mv /tmp/src/aroma/.coverage /tmp/src/coverage/.coverage.py38
+      - persist_to_workspace:
+          root: /tmp
+          paths:
+              - src/coverage/.coverage.py38
+
+  unittest_39:
+    docker:
+      - image: continuumio/miniconda3
+    working_directory: /tmp/src/aroma
+    steps:
+      - checkout
+      - run:
+          name: Generate environment
+          command: |
+            # apt-get install -yqq make
+            conda create -yq -n aroma_py39 python=3.9
+            source activate aroma_py39
+            pip install -e ".[test]"
+      - run:
+          name: Running unit tests
+          command: |
+            # apt-get install -yqq make
+            source activate /opt/miniconda-latest/envs/aroma_py39
+            make unittest
+            mkdir /tmp/src/coverage
+            mv /tmp/src/aroma/.coverage /tmp/src/coverage/.coverage.py39
+      - persist_to_workspace:
+          root: /tmp
+          paths:
+              - src/coverage/.coverage.py39
+
   integrationtest_36:
     docker:
-      - image: nipype/nipype
+      - image: continuumio/miniconda3
     working_directory: /tmp/src/aroma
     steps:
       - checkout
@@ -119,7 +171,7 @@ jobs:
 
   integrationtest_37:
     docker:
-      - image: nipype/nipype
+      - image: continuumio/miniconda3
     working_directory: /tmp/src/aroma
     steps:
       - checkout
@@ -144,7 +196,7 @@ jobs:
 
   style_check:
     docker:
-      - image: nipype/nipype
+      - image: continuumio/miniconda3
     working_directory: /tmp/src/aroma
     steps:
       - checkout
@@ -162,7 +214,7 @@ jobs:
   build_docs:
     working_directory: /tmp/src/aroma
     docker:
-      - image: nipype/nipype
+      - image: continuumio/miniconda3
     steps:
       - attach_workspace:  # get aroma
           at: /tmp
@@ -181,7 +233,7 @@ jobs:
   merge_coverage:
     working_directory: /tmp/src/aroma
     docker:
-      - image: nipype/nipype
+      - image: continuumio/miniconda3
     steps:
       - attach_workspace:
           at: /tmp
@@ -210,6 +262,8 @@ workflows:
       - unittest_37:
           requires:
             - makeenv_37
+      - unittest_38
+      - unittest_39
       - integrationtest_36
       - integrationtest_37:
           requires:
@@ -224,6 +278,8 @@ workflows:
           requires:
             - unittest_36
             - unittest_37
+            - unittest_38
+            - unittest_39
             - integrationtest_36
             - integrationtest_37
             - style_check
