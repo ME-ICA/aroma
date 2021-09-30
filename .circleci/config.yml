@@ -167,6 +167,7 @@ jobs:
       - run:
           name: Generate environment
           command: |
+            apt-get update
             apt-get install -yqq make
             if [ ! -d /opt/conda/envs/aroma_py36 ]; then
               conda create -yq -n aroma_py36 python=3.6
@@ -200,6 +201,7 @@ jobs:
           name: Run integration tests
           no_output_timeout: 10m
           command: |
+            apt-get update
             apt-get install -yqq make
             source activate /opt/conda/envs/aroma_py37  # depends on makeenv_37
             make integration
@@ -223,6 +225,7 @@ jobs:
       - run:
           name: Style check
           command: |
+            apt-get update
             apt-get install -yqq make
             source activate /opt/conda/envs/aroma_py37  # depends on makeenv37
             make lint
@@ -241,6 +244,7 @@ jobs:
       - run:
           name: Build documentation
           command: |
+            apt-get update
             apt-get install -yqq make
             source activate /opt/conda/envs/aroma_py37  # depends on makeenv_37
             pip install sphinx_rtd_theme
