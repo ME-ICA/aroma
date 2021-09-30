@@ -22,7 +22,6 @@ def classification_plot(in_file, out_dir):
     out_dir : str
         Output directory.
     """
-
     if not os.path.isfile(in_file):
         raise FileNotFoundError(f"Input file does not exist: {in_file}")
 
