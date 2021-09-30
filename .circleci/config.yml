@@ -157,7 +157,6 @@ jobs:
           name: Run integration tests
           no_output_timeout: 10m
           command: |
-            source /etc/fsl/fsl.sh
             source activate aroma_py36
             make integration
             mkdir /tmp/src/coverage
@@ -182,7 +181,6 @@ jobs:
           no_output_timeout: 10m
           command: |
             # apt-get install -yqq make
-            source /etc/fsl/fsl.sh
             source activate /opt/miniconda-latest/envs/aroma_py37  # depends on makeenv_37
             make integration
             mkdir /tmp/src/coverage
