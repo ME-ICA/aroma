@@ -230,7 +230,7 @@ jobs:
             source activate aroma_py37  # depends on makeenv_37
             make lint
       - store_artifacts:
-          path: /tmp/data/lint
+          path: /tmp
 
   build_docs:
     docker:
