@@ -10,7 +10,7 @@ help:
 	@echo "  all_tests		to run 'lint', 'unittest', and 'integration'"
 
 lint:
-	@flake8 aroma
+	@flake8 aroma --output-file /tmp/report.txt
 
 unittest:
 	@py.test --skipintegration --cov-append --cov-report term-missing --cov=aroma aroma/
