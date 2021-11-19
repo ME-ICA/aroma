@@ -8,8 +8,96 @@ import numpy as np
 import pandas as pd
 from nilearn import masking
 from nilearn._utils import load_niimg
+from scipy import stats
+
+from .mixture import GGM
 
 LGR = logging.getLogger(__name__)
+
+
+def run_ica(in_file, mask, n_components=-1, t_r=None):
+    """Run ICA and collect relevant outputs.
+
+    Parameters
+    ----------
+    in_file : str
+        Full path to the fMRI data file (nii.gz) on which ICA
+        should be run
+    mask : str
+        Full path of the mask to be applied during ICA
+    n_components : int, optional
+        Dimensionality of ICA.
+        If -1, then dimensionality will be automatically detected.
+        Default is -1.
+    t_r : float or None, optional
+        Repetition time (TR), in seconds, of the fMRI data.
+        If None, then TR will be inferred from the data file's header.
+        Default is None.
+
+    Returns
+    -------
+    components_img_z_thresh : 4D img_like
+    mixing_ica : (T x C) array_like
+    mixing_power_spectra : (F x C) array_like
+    """
+    from mapca import ma_pca
+    from tedana.decomposition import tedica
+
+    in_file = load_niimg(in_file)
+    mask = load_niimg(mask)
+    in_data = masking.apply_mask(in_file, mask)
+    n_vols, n_voxels = in_data.shape
+
+    # Start with a PCA to determine number of components and
+    # dimensionally reduce data
+    voxel_comp_weights, varex, varex_norm, mixing_pca = ma_pca(in_file, mask, criteria="mdl")
+    n_components = len(varex)
+    # kept_data is SxT, instead of nilearn-standard TxS
+    voxel_kept_comp_weighted = voxel_comp_weights * varex[None, :]
+    kept_data = np.dot(voxel_kept_comp_weighted, mixing_pca.T)
+    kept_data = stats.zscore(kept_data, axis=1)  # variance normalize time series
+    kept_data = stats.zscore(kept_data, axis=None)  # variance normalize everything
+    assert kept_data.shape == (n_voxels, n_vols)
+    LGR.info("{} components retained by PCA".format(n_components))
+
+    mixing_ica = tedica(kept_data, n_components, fixed_seed=1, maxit=500, maxrestart=5)
+    assert mixing_ica.shape == (n_vols, n_components)
+
+    # Compute component maps
+    data_z = stats.zscore(in_data, axis=0)
+    mixing_z = stats.zscore(mixing_ica, axis=0)
+    components_arr_z = np.linalg.lstsq(mixing_z, data_z, rcond=None)[0].T
+    assert components_arr_z.shape == (n_voxels, n_components)
+    # compute skews to determine signs based on unnormalized weights,
+    # correct mixing matrix & component map signs based on spatial distribution tails
+    signs = stats.skew(components_arr_z, axis=0)
+    signs /= np.abs(signs)
+    mixing_z = mixing_z * signs
+    components_arr_z *= signs
+
+    THRESH = 0.5
+    # Preallocate arrays
+    components_arr_z_thresh = np.zeros(components_arr_z.shape)
+    mixing_power_spectra = []
+    for i_comp in range(components_arr_z.shape[1]):
+        # Mixture modeling
+        component_arr = components_arr_z[:, i_comp]
+        ggm = GGM()
+        ggm.estimate(component_arr, niter=1000)
+        gauss_probs, gamma_probs = ggm.posterior(component_arr)
+        # apply threshold
+        component_arr[gamma_probs < THRESH] = 0
+        components_arr_z_thresh[:, i_comp] = component_arr
+
+        # Now get the FT array
+        # TODO: Check that (1) freqs are same and (2) range from 0 to Nyquist
+        spectrum, freqs = get_spectrum(mixing_ica[:, i_comp], t_r)
+        mixing_power_spectra.append(spectrum)
+    components_img_z_thresh = masking.unmask(components_arr_z_thresh.T, mask)
+    mixing_power_spectra = np.stack(mixing_power_spectra, axis=-1)
+    assert mixing_power_spectra.shape == (len(freqs), n_components), mixing_power_spectra.shape
+
+    return components_img_z_thresh, mixing_ica, mixing_power_spectra
 
 
 def cross_correlation(a, b):
@@ -129,8 +217,7 @@ def denoising(in_file, out_dir, mixing, den_type, den_idx):
     # Check if denoising is needed (i.e. are there motion components?)
     motion_components_found = den_idx.size > 0
 
-    nonaggr_denoised_file = op.join(out_dir,
-                                    "denoised_func_data_nonaggr.nii.gz")
+    nonaggr_denoised_file = op.join(out_dir, "denoised_func_data_nonaggr.nii.gz")
     aggr_denoised_file = op.join(out_dir, "denoised_func_data_aggr.nii.gz")
 
     if motion_components_found:
@@ -167,9 +254,8 @@ def denoising(in_file, out_dir, mixing, den_type, den_idx):
             img_denoised.to_filename(aggr_denoised_file)
     else:
         LGR.warning(
-                    "  - None of the components were classified as motion, "
-                    "so no denoising is applied (the input file is copied "
-                    "as-is)."
+            "  - None of the components were classified as motion, so no "
+            "denoising is applied (the input file is copied as-is)."
         )
         if den_type in ("nonaggr", "both"):
             shutil.copyfile(in_file, nonaggr_denoised_file)

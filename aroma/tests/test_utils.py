@@ -1,5 +1,8 @@
 """Tests for aroma.utils."""
 import numpy as np
+
+from nilearn import image, masking
+from threadpoolctl import threadpool_limits
 import pytest
 
 from aroma import utils
@@ -96,3 +99,12 @@ def test_cross_correlation():
     cross_corr = utils.cross_correlation(a.T, b.T)
 
     assert np.allclose(cross_corr, true_cross_corr)
+
+
+def test_run_ica(nilearn_data):
+    in_file = nilearn_data.func[0]
+    mask = masking.compute_epi_mask(in_file)
+    smoothed_img = image.smooth_img(in_file, fwhm=8)
+    t_r = 2.
+    with threadpool_limits(limits=1, user_api=None):
+        components, mixing, ft = utils.run_ica(smoothed_img, mask, t_r=t_r)

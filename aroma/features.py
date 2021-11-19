@@ -168,7 +168,7 @@ def feature_spatial(mel_IC):
     ----------
     mel_IC : str or niimg_like
         Full path of the nii.gz file containing mixture-modeled thresholded
-        (p<0.5) Z-maps, registered to the MNI152 2mm template
+        (prob>0.5) Z-maps, registered to the MNI152 2mm template
 
     Returns
     -------

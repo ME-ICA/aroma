@@ -7,6 +7,7 @@ import shutil
 
 import nibabel as nib
 import numpy as np
+from nilearn import masking
 import pandas as pd
 
 from aroma import _version, features, utils
@@ -148,10 +149,24 @@ def aroma_workflow(
             "-------------- ICA-AROMA IS CANCELED ------------\n"
         )
 
-    # Load more inputs
-    motion_params = utils.load_motpars(mc, source=mc_source)  # T x 6
-    mixing = np.loadtxt(mixing)  # T x C
-    component_maps = nib.load(component_maps)  # X x Y x Z x C
+    run_ica = False  # Just to deal with the merge conflict on 21/11/19
+    if run_ica:
+        # Define/create mask.
+        # Either by making a copy of the specified mask, or by creating a new one.
+        mask = None  # Just to deal with the merge conflict on 21/11/19
+        if not mask:
+            mask = masking.compute_epi_mask(in_file)
+
+        # Run ICA-AROMA
+        LGR.info("Step 1) ICA")
+        component_maps, mixing = utils.run_ica(in_file, mask, n_components=-1, t_r=TR)
+
+    else:
+        # Load more inputs
+        motion_params = utils.load_motpars(mc, source=mc_source)  # T x 6
+        mixing = np.loadtxt(mixing)  # T x C
+        component_maps = nib.load(component_maps)  # X x Y x Z x C
+
     if mixing.shape[1] != component_maps.shape[3]:
         raise ValueError(
             f"Number of columns in mixing matrix ({mixing.shape[1]}) does not match "
