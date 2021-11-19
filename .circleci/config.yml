@@ -7,34 +7,6 @@ orbs:
   codecov: codecov/codecov@1.0.5
 jobs:
 
-  makeenv_37:
-    docker:
-      - image: continuumio/miniconda3
-    working_directory: /tmp/src/aroma
-    steps:
-      - checkout
-      - persist_to_workspace:
-          root: /tmp
-          paths:
-              - src/aroma
-      - restore_cache:
-          key: conda-py37-v1-{{ checksum "setup.cfg" }}
-      - run:
-          name: Generate environment
-          command: |
-            if [[ -e /opt/conda/envs/py36_env ]]; then
-              echo "Restoring environment from cache"
-                source activate aroma_py37
-            else
-              conda create -yq -n aroma_py37 python=3.7
-              source activate aroma_py37
-              pip install -e ".[test,doc]"
-            fi
-      - save_cache:
-          key: conda-py37-v1-{{ checksum "setup.cfg" }}
-          paths:
-              - /opt/conda/envs/aroma_py37
-
   unittest_36:
     docker:
       - image: continuumio/miniconda3
@@ -46,6 +18,7 @@ jobs:
       - run:
           name: Generate environment
           command: |
+            apt-get update
             apt-get install -yqq make
             if [ ! -d /opt/conda/envs/aroma_py36 ]; then
               conda create -yq -n aroma_py36 python=3.6
@@ -68,6 +41,27 @@ jobs:
           paths:
               - src/coverage/.coverage.py36
 
+  makeenv_37:
+    docker:
+      - image: continuumio/miniconda3
+    working_directory: /tmp/src/aroma
+    steps:
+      - checkout
+      - restore_cache:
+          key: conda-py37-v2-{{ checksum "setup.cfg" }}
+      - run:
+          name: Generate environment
+          command: |
+            if [ ! -d /opt/conda/envs/aroma_py37 ]; then
+              conda create -yq -n aroma_py37 python=3.7
+              source activate aroma_py37
+              pip install -e ".[test,doc]"
+            fi
+      - save_cache:
+          key: conda-py37-v2-{{ checksum "setup.cfg" }}
+          paths:
+              - /opt/conda/envs/aroma_py37
+
   unittest_37:
     docker:
       - image: continuumio/miniconda3
@@ -75,19 +69,92 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: conda-py37-v1-{{ checksum "setup.cfg" }}
+          key: conda-py37-v2-{{ checksum "setup.cfg" }}
       - run:
           name: Running unit tests
           command: |
-            apt-get install -y make
+            apt-get update
+            apt-get install -yqq make
             source activate aroma_py37  # depends on makeenv_37
             make unittest
             mkdir /tmp/src/coverage
             mv /tmp/src/aroma/.coverage /tmp/src/coverage/.coverage.py37
+      - save_cache:
+          key: conda-py36-v1-{{ checksum "setup.cfg" }}
+          paths:
+              - /opt/conda/envs/aroma_py36
       - persist_to_workspace:
           root: /tmp
           paths:
               - src/coverage/.coverage.py37
+
+  unittest_38:
+    docker:
+      - image: continuumio/miniconda3
+    working_directory: /tmp/src/aroma
+    steps:
+      - checkout
+      - restore_cache:
+          key: conda-py38-v1-{{ checksum "setup.cfg" }}
+      - run:
+          name: Generate environment
+          command: |
+            apt-get update
+            apt-get install -yqq make
+            if [ ! -d /opt/conda/envs/aroma_py38 ]; then
+              conda create -yq -n aroma_py38 python=3.8
+              source activate aroma_py38
+              pip install -e ".[test]"
+            fi
+      - run:
+          name: Running unit tests
+          command: |
+            source activate aroma_py38
+            make unittest
+            mkdir /tmp/src/coverage
+            mv /tmp/src/aroma/.coverage /tmp/src/coverage/.coverage.py38
+      - save_cache:
+          key: conda-py38-v1-{{ checksum "setup.cfg" }}
+          paths:
+              - /opt/conda/envs/aroma_py38
+      - persist_to_workspace:
+          root: /tmp
+          paths:
+              - src/coverage/.coverage.py38
+
+  unittest_39:
+    docker:
+      - image: continuumio/miniconda3
+    working_directory: /tmp/src/aroma
+    steps:
+      - checkout
+      - restore_cache:
+          key: conda-py39-v1-{{ checksum "setup.cfg" }}
+      - run:
+          name: Generate environment
+          command: |
+            apt-get update
+            apt-get install -yqq make
+            if [ ! -d /opt/conda/envs/aroma_py39 ]; then
+              conda create -yq -n aroma_py39 python=3.9
+              source activate aroma_py39
+              pip install -e ".[test]"
+            fi
+      - run:
+          name: Running unit tests
+          command: |
+            source activate aroma_py39
+            make unittest
+            mkdir /tmp/src/coverage
+            mv /tmp/src/aroma/.coverage /tmp/src/coverage/.coverage.py39
+      - save_cache:
+          key: conda-py39-v1-{{ checksum "setup.cfg" }}
+          paths:
+              - /opt/conda/envs/aroma_py39
+      - persist_to_workspace:
+          root: /tmp
+          paths:
+              - src/coverage/.coverage.py39
 
   integrationtest_36:
     docker:
@@ -100,6 +167,7 @@ jobs:
       - run:
           name: Generate environment
           command: |
+            apt-get update
             apt-get install -yqq make
             if [ ! -d /opt/conda/envs/aroma_py36 ]; then
               conda create -yq -n aroma_py36 python=3.6
@@ -115,7 +183,7 @@ jobs:
             mkdir /tmp/src/coverage
             mv /tmp/src/aroma/.coverage /tmp/src/coverage/.coverage.integration36
       - store_artifacts:
-          path: /tmp/data
+          path: /tmp/pytest-of-root/pytest-0/data
       - persist_to_workspace:
           root: /tmp
           paths:
@@ -128,18 +196,19 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: conda-py37-v1-{{ checksum "setup.cfg" }}
+          key: conda-py37-v2-{{ checksum "setup.cfg" }}
       - run:
           name: Run integration tests
           no_output_timeout: 10m
           command: |
+            apt-get update
             apt-get install -yqq make
             source activate aroma_py37  # depends on makeenv_37
             make integration
             mkdir /tmp/src/coverage
             mv /tmp/src/aroma/.coverage /tmp/src/coverage/.coverage.integration37
       - store_artifacts:
-          path: /tmp/data
+          path: /tmp/pytest-of-root/pytest-0/data
       - persist_to_workspace:
           root: /tmp
           paths:
@@ -152,28 +221,29 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: conda-py37-v1-{{ checksum "setup.cfg" }}
+          key: conda-py37-v2-{{ checksum "setup.cfg" }}
       - run:
           name: Style check
           command: |
+            apt-get update
             apt-get install -yqq make
-            source activate aroma_py37  # depends on makeenv37
+            source activate aroma_py37  # depends on makeenv_37
             make lint
       - store_artifacts:
-          path: /tmp/data/lint
+          path: /tmp/report_lint.txt
 
   build_docs:
-    working_directory: /tmp/src/aroma
     docker:
       - image: continuumio/miniconda3
+    working_directory: /tmp/src/aroma
     steps:
-      - attach_workspace:  # get aroma
-          at: /tmp
+      - checkout
       - restore_cache:  # load environment
-          key: conda-py37-v1-{{ checksum "setup.cfg" }}
+          key: conda-py37-v2-{{ checksum "setup.cfg" }}
       - run:
           name: Build documentation
           command: |
+            apt-get update
             apt-get install -yqq make
             source activate aroma_py37  # depends on makeenv_37
             make -C docs html
@@ -181,18 +251,19 @@ jobs:
           path: /tmp/src/aroma/docs/_build/html
 
   merge_coverage:
-    working_directory: /tmp/src/aroma
     docker:
       - image: continuumio/miniconda3
+    working_directory: /tmp/src/aroma
     steps:
       - attach_workspace:
           at: /tmp
       - checkout
       - restore_cache:
-          key: conda-py37-v1-{{ checksum "setup.cfg" }}
+          key: conda-py37-v2-{{ checksum "setup.cfg" }}
       - run:
           name: Merge coverage files
           command: |
+            apt-get update
             apt-get install -yqq curl
             source activate aroma_py37  # depends on makeenv37
             cd /tmp/src/coverage/
@@ -212,6 +283,8 @@ workflows:
       - unittest_37:
           requires:
             - makeenv_37
+      - unittest_38
+      - unittest_39
       - integrationtest_36
       - integrationtest_37:
           requires:
@@ -219,13 +292,15 @@ workflows:
       - style_check:
           requires:
             - makeenv_37
-      # - build_docs:
-      #     requires:
-      #       - makeenv_37
+      - build_docs:
+          requires:
+            - makeenv_37
       - merge_coverage:
           requires:
             - unittest_36
             - unittest_37
+            - unittest_38
+            - unittest_39
             - integrationtest_36
             - integrationtest_37
             - style_check

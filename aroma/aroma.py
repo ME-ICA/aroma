@@ -8,35 +8,65 @@ import shutil
 import nibabel as nib
 import numpy as np
 from nilearn import masking
+import pandas as pd
 
-from aroma import utils, features, _version
+from aroma import _version, features, utils
 
 LGR = logging.getLogger(__name__)
 
 
 def aroma_workflow(
+    in_file,
+    mc,
+    mixing,
+    component_maps,
     out_dir,
-    in_feat=None,
-    in_file=None,
-    mc=None,
-    mel_dir=None,
-    affmat=None,
-    warp=None,
-    dim=0,
     den_type="nonaggr",
-    mask=None,
     TR=None,
     overwrite=False,
     generate_plots=True,
     debug=False,
-    quiet=False
+    quiet=False,
+    mc_source="auto",
 ):
     """Run the AROMA workflow.
 
     Parameters
     ----------
-    in_feat
+    in_file : str
+        Path to MNI-space functional run to denoise.
+    mc : str
+        Path to motion parameters.
+    mixing : str
+        Path to mixing matrix.
+    component_maps : str
+        Path to thresholded z-statistic component maps.
+    out_dir : str
+        Output directory.
+    den_type : {"nonaggr", "aggr", "both", "no"}, optional
+        Denoising approach to use.
+    TR : float or None, optional
+        Repetition time of data in in_file and mixing.
+        If None, this will be extracted from the header of in_file.
+    overwrite : bool
+    generate_plots : bool
+    debug : bool
+    quiet : bool
+    mc_source : {"auto"}, optional
+        What format is the mc file in?
     """
+    if not op.isfile(in_file):
+        raise FileNotFoundError(f"Input file does not exist: {in_file}")
+
+    if not op.isfile(mc):
+        raise FileNotFoundError(f"Motion parameters file does not exist: {mc}")
+
+    if not op.isfile(mixing):
+        raise FileNotFoundError(f"Mixing matrix file does not exist: {mixing}")
+
+    if not op.isfile(component_maps):
+        raise FileNotFoundError(f"Component maps file does not exist: {component_maps}")
+
     # Create output directory if needed
     if op.isdir(out_dir) and not overwrite:
         LGR.info(
@@ -86,74 +116,9 @@ def aroma_workflow(
         logging.basicConfig(level=logging.INFO,
                             handlers=[log_handler, sh],
                             format='%(levelname)-10s %(message)s')
+
     version_number = _version.get_versions()['version']
     LGR.info(f'Currently running ICA-AROMA version {version_number}')
-    if in_feat and in_file:
-        raise ValueError("Only one of 'in_feat' "
-                         "and 'in_file' may be provided.")
-
-    if in_feat and (mc or affmat or warp or mask):
-        raise ValueError(
-            "Arguments 'mc', 'affmat', 'warp', and 'mask' are incompatible "
-            "with argument 'in_feat'."
-        )
-
-    # Define variables based on the type of input (i.e. Feat directory or
-    # specific input arguments), and check whether the specified files exist.
-    if in_feat:
-        # Check whether the Feat directory exists
-        if not op.isdir(in_feat):
-            raise Exception("The specified FEAT directory does not exist.")
-
-        # Define the variables which should be located in the Feat directory
-        in_file = op.join(in_feat, "filtered_func_data.nii.gz")
-        mc = op.join(in_feat, "mc", "prefiltered_func_data_mcf.par")
-        affmat = op.join(in_feat, "reg", "example_func2highres.mat")
-        warp = op.join(in_feat, "reg", "highres2standard_warp.nii.gz")
-
-        # Check whether these files actually exist
-        if not op.isfile(in_file):
-            raise Exception("Missing filtered_func_data.nii.gz"
-                            "in Feat directory.")
-
-        if not op.isfile(mc):
-            raise Exception(
-                "Missing mc/prefiltered_func_data_mcf.mat in Feat directory."
-            )
-
-        if not op.isfile(affmat):
-            raise Exception("Missing reg/example_func2highres.mat"
-                            "in Feat directory.")
-
-        if not op.isfile(warp):
-            raise Exception(
-                "Missing reg/highres2standard_warp.nii.gz in Feat directory."
-            )
-
-        # Check whether a melodic.ica directory exists
-        if op.isdir(op.join(in_feat, "filtered_func_data.ica")):
-            mel_dir = op.join(in_feat, "filtered_func_data.ica")
-    else:
-        # Check whether the files exist
-        if not in_file:
-            LGR.warning("No input file specified.")
-        elif not op.isfile(in_file):
-            raise Exception("The specified input file does not exist.")
-
-        if not mc:
-            LGR.warning("No mc file specified.")
-        elif not op.isfile(mc):
-            raise Exception("The specified mc file does does not exist.")
-
-        if affmat and not op.isfile(affmat):
-            raise Exception("The specified affmat file does not exist.")
-
-        if warp and not op.isfile(warp):
-            raise Exception("The specified warp file does not exist.")
-
-    # Check if the mask exists, when specified.
-    if mask and not op.isfile(mask):
-        raise Exception("The specified mask does not exist.")
 
     # Check if the type of denoising is correctly specified, when specified
     if den_type not in ("nonaggr", "aggr", "both", "no"):
@@ -164,9 +129,6 @@ def aroma_workflow(
         den_type = "nonaggr"
 
     # Prepare
-
-    # Define the FSL-bin directory
-    fsl_dir = op.join(os.environ["FSLDIR"], "bin", "")
     # Get TR of the fMRI data, if not specified
     if not TR:
         in_img = nib.load(in_file)
@@ -187,54 +149,61 @@ def aroma_workflow(
             "-------------- ICA-AROMA IS CANCELED ------------\n"
         )
 
-    # Define/create mask. Either by making a copy of the specified mask, or by
-    # creating a new one.
-    new_mask = op.join(out_dir, "mask.nii.gz")
-    if not mask:
-        mask = masking.compute_epi_mask(in_file)
-        mask.to_filename(new_mask)
+    run_ica = False  # Just to deal with the merge conflict on 21/11/19
+    if run_ica:
+        # Define/create mask.
+        # Either by making a copy of the specified mask, or by creating a new one.
+        mask = None  # Just to deal with the merge conflict on 21/11/19
+        if not mask:
+            mask = masking.compute_epi_mask(in_file)
 
-    # Run ICA-AROMA
-    LGR.info("Step 1) ICA")
-    components_img_z_thresh, mixing_ica, mixing_power_spectra = utils.run_ica(
-        in_file, new_mask, n_components=-1, t_r=TR
-    )
-    mel_IC = op.join(out_dir, "melodic_IC_thr.nii.gz")
-    os.mkdir(op.join(out_dir, "melodic.ica"))  # necessary until we drop MELODIC completely
-    mel_mix = op.join(out_dir, "melodic.ica", "melodic_mix")
-    mel_FT_mix = op.join(out_dir, "melodic.ica", "melodic_FTmix")
-    components_img_z_thresh.to_filename(mel_IC)
-    np.savetxt(mel_mix, mixing_ica)
-    np.savetxt(mel_FT_mix, mixing_power_spectra)
+        # Run ICA-AROMA
+        LGR.info("Step 1) ICA")
+        component_maps, mixing = utils.run_ica(in_file, mask, n_components=-1, t_r=TR)
 
-    LGR.info("Step 2) Automatic classification of the components")
-    LGR.info("  - registering the spatial maps to MNI")
-    mel_IC_MNI = op.join(out_dir, "melodic_IC_thr_MNI2mm.nii.gz")
-    utils.register2MNI(fsl_dir, mel_IC, mel_IC_MNI, affmat, warp)
+    else:
+        # Load more inputs
+        motion_params = utils.load_motpars(mc, source=mc_source)  # T x 6
+        mixing = np.loadtxt(mixing)  # T x C
+        component_maps = nib.load(component_maps)  # X x Y x Z x C
+
+    if mixing.shape[1] != component_maps.shape[3]:
+        raise ValueError(
+            f"Number of columns in mixing matrix ({mixing.shape[1]}) does not match "
+            f"fourth dimension of component maps file ({component_maps.shape[3]})."
+        )
+
+    if mixing.shape[0] != motion_params.shape[0]:
+        raise ValueError(
+            f"Number of rows in mixing matrix ({mixing.shape[0]}) does not match "
+            f"number of rows in motion parameters ({motion_params.shape[0]})."
+        )
 
     LGR.info("  - extracting the CSF & Edge fraction features")
-    edge_fract, csf_fract = features.feature_spatial(mel_IC_MNI)
+    features_df = pd.DataFrame()
+    features_df["edge_fract"], features_df["csf_fract"] = features.feature_spatial(
+        component_maps
+    )
 
     LGR.info("  - extracting the Maximum RP correlation feature")
-    max_RP_corr = features.feature_time_series(mel_mix, mc)
+    features_df["max_RP_corr"] = features.feature_time_series(mixing, motion_params)
 
     LGR.info("  - extracting the High-frequency content feature")
-    HFC = features.feature_frequency(mel_FT_mix, TR)
+    # Should probably check that the frequencies match up with MELODIC's outputs
+    mel_FT_mix, FT_freqs = utils.get_spectrum(mixing, TR)
+    features_df["HFC"] = features.feature_frequency(mel_FT_mix, TR)
 
     LGR.info("  - classification")
-    motion_ICs = utils.classification(out_dir, max_RP_corr,
-                                      edge_fract, HFC, csf_fract)
+    motion_ICs = utils.classification(features_df, out_dir)
 
     if generate_plots:
         from . import plotting
-
         plotting.classification_plot(
             op.join(out_dir, "classification_overview.txt"), out_dir
         )
 
     if den_type != "no":
         LGR.info("Step 3) Data denoising")
-        utils.denoising(fsl_dir, in_file, out_dir,
-                        mel_mix, den_type, motion_ICs)
+        utils.denoising(in_file, out_dir, mixing, den_type, motion_ICs)
 
     LGR.info("Finished")
