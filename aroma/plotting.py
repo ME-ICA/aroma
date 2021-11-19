@@ -2,13 +2,12 @@
 import logging
 import os
 
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from matplotlib import gridspec
-
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 mpl.use('Agg')
 LGR = logging.getLogger(__name__)
 
@@ -26,14 +25,14 @@ def classification_plot(in_file, out_dir):
     if not os.path.isfile(in_file):
         raise FileNotFoundError(f"Input file does not exist: {in_file}")
 
-    df = pd.read_table(in_file)
+    df = pd.read_csv(in_file, sep="\t", index_col="IC")
     motion_components_df = df.loc[df["classification"] == "rejected"]
 
     # get counts
     n_components = df.shape[0]
     n_motion_components = motion_components_df.shape[0]
-    LGR.info('Found', n_motion_components, 'head motion-related components in a total of',
-             n_components, 'components.')
+    LGR.info(f'Found {n_motion_components} head motion-related components in a total of '
+             f'{n_components} components.')
 
     # add dummy components if needed, this is just for making the plots look nice
     if n_motion_components < 3:
@@ -70,36 +69,41 @@ def classification_plot(in_file, out_dir):
             "csf_fract": "CSF",
         }
     )
-    df["classification"] = df["classification"].map(
-        {"rejected": "True", "accepted": "False"}
-    )
+    df["Motion"] = df["Motion"].map({"rejected": "True", "accepted": "False"})
 
     # Make pretty figure
     # styling
     sns.set_style("white")
     colortrue = "#FFBF17"
     colorfalse = "#69A00A"
-
+    # plot Edge/RP relationship
+    # obtain projection line
+    hyp = np.array([-19.9751070082159, 9.95127547670627, 24.8333160239175])
+    a = -hyp[1] / hyp[2]
+    xx = np.linspace(0, 1)
+    yy = a * xx - hyp[0] / hyp[2]
+    # create aux figure
+    h = sns.jointplot(x="RP",
+                      y="Edge",
+                      data=df,
+                      hue=df['Motion'],
+                      kind='scatter',
+                      palette=[colortrue, colorfalse],
+                      hue_order=['True', 'False'],
+                      xlim=[0, 1],
+                      ylim=[0, 1])
+    h.set_axis_labels('Maximum RP Correlation', 'Edge Fraction', fontsize=14, labelpad=10)
+    h.ax_joint.set_xticks(np.arange(0, 1.2, 0.2))
+    h.ax_joint.set_yticks(np.arange(0, 1.2, 0.2))
+    h.ax_joint.tick_params(axis='both', labelsize=12)
+    h.ax_joint.plot(xx, yy, '.', color="k", markersize=1)
+    h.savefig(os.path.join(out_dir, 'aux_fig.png'),
+              bbox_inches='tight', dpi=300)
     # create figure
-    fig = plt.figure(figsize=[12, 4])
-
-    # define grids
-    gs = gridspec.GridSpec(4, 7, wspace=1)
-    gs00 = gridspec.GridSpecFromSubplotSpec(4, 4, subplot_spec=gs[:, 0:3])
-    gs01 = gridspec.GridSpecFromSubplotSpec(4, 1, subplot_spec=gs[:, 3:5])
-    gs02 = gridspec.GridSpecFromSubplotSpec(4, 1, subplot_spec=gs[:, 5:7])
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=[12, 4])
 
     # define subplots
     # Edge/RP
-    ax1 = fig.add_subplot(gs00[1:4, 0:3])
-    # distribution edge (ax1 top)
-    ax1t = fig.add_subplot(gs00[0, 0:3])
-    # distribution RP (ax1 right)
-    ax1r = fig.add_subplot(gs00[1:4, 3])
-    # Freq
-    ax2 = fig.add_subplot(gs01[1:4, :])
-    # CSF
-    ax3 = fig.add_subplot(gs02[1:4, :])
 
     # plot Freq
     sns.boxplot(
@@ -137,93 +141,17 @@ def classification_plot(in_file, out_dir):
 
     # plot Edge/RP relationship
     # obtain projection line
-    hyp = np.array([-19.9751070082159, 9.95127547670627, 24.8333160239175])
-    a = -hyp[1] / hyp[2]
-    xx = np.linspace(0, 1)
-    yy = a * xx - hyp[0] / hyp[2]
-    # plot scatter and line
-    if len(df) > 100:
-        sizemarker = 6
-    else:
-        sizemarker = 10
-    ax1.scatter(
-        x="RP",
-        y="Edge",
-        data=df.loc[df["Motion"] == "False"],
-        color=colorfalse,
-        s=sizemarker,
-    )
-    # plot true ones on top to see how much the go over the border
-    # this gives an indication for how many were selected using the
-    # two other features
-    ax1.scatter(
-        x="RP",
-        y="Edge",
-        data=df.loc[df["Motion"] == "True"],
-        color=colortrue,
-        s=sizemarker,
-    )
-    # add decision boundary
-    ax1.plot(xx, yy, ".", color="k", markersize=1)
-    # styling
-    ax1.set_ylim([0, 1])
-    ax1.set_xlim([0, 1])
-    ax1.set_xlabel("Maximum RP Correlation", fontsize=14, labelpad=10)
-    ax1.set_ylabel("Edge Fraction", fontsize=14)
-    ax1.set_xticks(np.arange(0, 1.2, 0.2))
-    ax1.set_yticks(np.arange(0, 1.2, 0.2))
-    ax1.tick_params(axis="both", labelsize=12)
-
-    # plot distributions
-    # RP
-    sns.distplot(
-        df.loc[df["Motion"] == "True", "RP"],
-        ax=ax1t,
-        color=colortrue,
-        hist_kws={"alpha": 0.2},
-    )
-    sns.distplot(
-        df.loc[df["Motion"] == "False", "RP"],
-        ax=ax1t,
-        color=colorfalse,
-        hist_kws={"alpha": 0.2},
-    )
-    ax1t.set_xlim([0, 1])
-
-    # Edge
-    sns.distplot(
-        df.loc[df["Motion"] == "True", "Edge"],
-        ax=ax1r,
-        vertical=True,
-        color=colortrue,
-        hist_kws={"alpha": 0.2},
-    )
-    sns.distplot(
-        df.loc[df["Motion"] == "False", "Edge"],
-        ax=ax1r,
-        vertical=True,
-        color=colorfalse,
-        hist_kws={"alpha": 0.2},
-    )
-    ax1r.set_ylim([0, 1])
-
-    # cosmetics
-    for myax in [ax1t, ax1r]:
-        myax.set_xticks([])
-        myax.set_yticks([])
-        myax.set_xlabel("")
-        myax.set_ylabel("")
-        myax.spines["right"].set_visible(False)
-        myax.spines["top"].set_visible(False)
-        myax.spines["bottom"].set_visible(False)
-        myax.spines["left"].set_visible(False)
+    aux_img = mpimg.imread(os.path.join(out_dir, 'aux_fig.png'))
+    ax1.imshow(aux_img)
+    ax1.axis('off')
+    fig.tight_layout()
 
     # bring tickmarks back
     for myax in fig.get_axes():
         myax.tick_params(which="major", direction="in", length=3)
 
     # add figure title
-    plt.suptitle("Component Assessment", fontsize=20)
+    fig.suptitle('Component Assessment', fontsize=20, y=1.08)
 
     # outtakes
     plt.savefig(
