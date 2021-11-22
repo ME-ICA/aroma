@@ -6,8 +6,15 @@ import pytest
 from aroma.aroma import aroma_workflow
 
 
-def test_integration(skip_integration, nilearn_data, classification_overview,
-                     classified_motion_ICs, feature_scores):
+def test_integration(
+    skip_integration,
+    nilearn_data,
+    classification_overview,
+    classified_motion_ICs,
+    feature_scores,
+    mel_mix,
+    mel_IC,
+):
     if skip_integration:
         pytest.skip("Skipping integration test")
 
@@ -25,13 +32,10 @@ def test_integration(skip_integration, nilearn_data, classification_overview,
     mc_path = join(test_path, "mc.txt")
     mc.to_csv(mc_path, sep="\t", index=False, header=None)
 
-    mixing = join(resources_path, "melodic_mix")
-    component_maps = join(resources_path, "melodic_IC_thr_MNI2mm.nii.gz")
-
     aroma_workflow(
         in_file=nilearn_data.func[0],
-        mixing=mixing,
-        component_maps=component_maps,
+        mixing=mel_mix,
+        component_maps=mel_IC,
         mc=mc_path,
         out_dir=out_path,
         TR=2,
@@ -47,17 +51,21 @@ def test_integration(skip_integration, nilearn_data, classification_overview,
     assert isfile(join(out_path, "feature_scores.tsv"))
 
     # Check classification overview file
-    true_classification_overview = pd.read_csv(classification_overview,
-                                               sep="\t",
-                                               index_col="IC",
-                                               nrows=4,)
+    true_classification_overview = pd.read_csv(
+        classification_overview,
+        sep="\t",
+        index_col="IC",
+        nrows=4,
+    )
     classification_overview = pd.read_csv(
         join(out_path, "classification_overview.txt"), sep="\t", index_col="IC", nrows=4
     )
 
-    assert np.allclose(true_classification_overview.iloc[:, :-1].values,
-                       classification_overview.iloc[:, :-1].values,
-                       atol=0.9)
+    assert np.allclose(
+        true_classification_overview.iloc[:, :-1].values,
+        classification_overview.iloc[:, :-1].values,
+        atol=0.9,
+    )
 
     #  Check feature scores
     f_scores = pd.read_table(join(out_path, "feature_scores.tsv"))
