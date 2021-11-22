@@ -98,22 +98,22 @@ def mel_IC(testpath):
 
 @pytest.fixture
 def csfFract(testpath):
-    return fetch_file("fw6mu", testpath, "csfFract.npy")
+    return fetch_file("d298c", testpath, "csfFract.npy")
 
 
 @pytest.fixture
 def edgeFract(testpath):
-    return fetch_file("2y6rf", testpath, "edgeFract.npy")
+    return fetch_file("vxdu6", testpath, "edgeFract.npy")
 
 
 @pytest.fixture
 def max_correls(testpath):
-    return fetch_file("u9dwp", testpath, "max_correls.npy")
+    return fetch_file("hpd2m", testpath, "max_correls.npy")
 
 
 @pytest.fixture
 def HFC(testpath):
-    return fetch_file("ur7pq", testpath, "HFC.npy")
+    return fetch_file("rymwg", testpath, "HFC.npy")
 
 
 @pytest.fixture
