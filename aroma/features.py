@@ -2,9 +2,9 @@
 import logging
 import os
 
-import nibabel as nib
 import numpy as np
 from nilearn import image, masking
+from nilearn._utils import load_niimg
 
 from aroma import utils
 
@@ -19,9 +19,8 @@ def feature_time_series(mel_mix, mc):
 
     Parameters
     ----------
-    mel_mix : str
-        Full path of the melodic_mix text file.
-        Stored array is (time x component).
+    mel_mix : numpy.ndarray of shape (T, C)
+        Mixing matrix in shape T (time) by C (component).
     mc : str or array_like
         Full path of the text file containing the realignment parameters.
         Motion parameters are (time x 6), with the first three columns being
@@ -38,11 +37,15 @@ def feature_time_series(mel_mix, mc):
         rp6 = utils.load_motpars(mc, source="auto")
     else:
         rp6 = mc
-    assert (rp6.ndim == 2) and (rp6.shape[1] == 6), "Wrong shape"
 
-    # Read melodic mix file (IC time-series), subsequently define a set of
-    # squared time-series
-    mix = np.loadtxt(mel_mix)
+    if (rp6.ndim != 2) or (rp6.shape[1] != 6):
+        raise ValueError(f"Motion parameters must of shape (n_trs, 6), not {rp6.shape}")
+
+    if rp6.shape[0] != mel_mix.shape[0]:
+        raise ValueError(
+            f"Number of rows in mixing matrix ({mel_mix.shape[0]}) does not match "
+            f"number of rows in motion parameters ({rp6.shape[0]})."
+        )
 
     # Determine the derivatives of the RPs (add zeros at time-point zero)
     _, nparams = rp6.shape
@@ -58,7 +61,7 @@ def feature_time_series(mel_mix, mc):
 
     # Determine the maximum correlation between RPs and IC time-series
     nsplits = 1000
-    nmixrows, nmixcols = mix.shape
+    nmixrows, nmixcols = mel_mix.shape
     nrows_to_choose = int(round(0.9 * nmixrows))
 
     # Max correlations for multiple splits of the dataset (for a robust
@@ -71,8 +74,10 @@ def feature_time_series(mel_mix, mc):
 
         # Combined correlations between RP and IC time-series, squared and
         # non squared
-        correl_nonsquared = utils.cross_correlation(mix[chosen_rows], rp_model[chosen_rows])
-        correl_squared = utils.cross_correlation(mix[chosen_rows] ** 2, rp_model[chosen_rows] ** 2)
+        correl_nonsquared = utils.cross_correlation(mel_mix[chosen_rows],
+                                                    rp_model[chosen_rows])
+        correl_squared = utils.cross_correlation(mel_mix[chosen_rows]**2,
+                                                 rp_model[chosen_rows]**2)
         correl_both = np.hstack((correl_squared, correl_nonsquared))
 
         # Maximum absolute temporal correlation for every IC
@@ -85,7 +90,7 @@ def feature_time_series(mel_mix, mc):
     return max_RP_corr
 
 
-def feature_frequency(mel_FT_mix, TR):
+def feature_frequency(mel_FT_mix: np.ndarray, TR: float):
     """Extract the high-frequency content feature scores.
 
     This function determines the frequency, as fraction of the Nyquist
@@ -94,8 +99,7 @@ def feature_frequency(mel_FT_mix, TR):
 
     Parameters
     ----------
-    mel_FT_mix : str
-        Full path of the melodic_FTmix text file.
+    mel_FT_mix : numpy.ndarray of shape (F, C)
         Stored array is (frequency x component), with frequencies
         ranging from 0 Hz to Nyquist frequency.
     TR : float
@@ -113,9 +117,7 @@ def feature_frequency(mel_FT_mix, TR):
     # Determine Nyquist-frequency
     Ny = Fs / 2
 
-    # Load melodic_FTmix file
-    FT = np.loadtxt(mel_FT_mix)
-    n_frequencies = FT.shape[0]
+    n_frequencies = mel_FT_mix.shape[0]
 
     # Determine which frequencies are associated with every row in the
     # melodic_FTmix file (assuming the rows range from 0Hz to Nyquist)
@@ -123,14 +125,14 @@ def feature_frequency(mel_FT_mix, TR):
 
     # Only include frequencies higher than 0.01Hz
     fincl = np.squeeze(np.array(np.where(f > 0.01)))
-    FT = FT[fincl, :]
+    mel_FT_mix = mel_FT_mix[fincl, :]
     f = f[fincl]
 
     # Set frequency range to [0-1]
     f_norm = (f - 0.01) / (Ny - 0.01)
 
     # For every IC; get the cumulative sum as a fraction of the total sum
-    fcumsum_fract = np.cumsum(FT, axis=0) / np.sum(FT, axis=0)
+    fcumsum_fract = np.cumsum(mel_FT_mix, axis=0) / np.sum(mel_FT_mix, axis=0)
 
     # Determine the index of the frequency with the fractional cumulative sum
     # closest to 0.5
@@ -153,7 +155,7 @@ def feature_spatial(mel_IC):
 
     Parameters
     ----------
-    mel_IC : str
+    mel_IC : str or niimg_like
         Full path of the nii.gz file containing mixture-modeled thresholded
         (p<0.5) Z-maps, registered to the MNI152 2mm template
 
@@ -167,7 +169,7 @@ def feature_spatial(mel_IC):
         mel_IC file
     """
     # Get the number of ICs
-    mel_IC_img = nib.load(mel_IC)
+    mel_IC_img = load_niimg(mel_IC)
     num_ICs = mel_IC_img.shape[3]
 
     masks_dir = utils.get_resource_path()

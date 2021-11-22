@@ -1,7 +1,4 @@
 import numpy as np
-import os.path as op
-import pandas as pd
-
 from aroma import features
 
 

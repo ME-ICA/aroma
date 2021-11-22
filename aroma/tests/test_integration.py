@@ -1,10 +1,9 @@
+from os.path import isfile, join, split
+
 import numpy as np
 import pandas as pd
-from os.path import join, split, isfile
-
-from aroma.aroma import aroma_workflow
-
 import pytest
+from aroma.aroma import aroma_workflow
 
 
 def test_integration(skip_integration, nilearn_data, classification_overview,
@@ -26,20 +25,19 @@ def test_integration(skip_integration, nilearn_data, classification_overview,
     mc_path = join(test_path, "mc.txt")
     mc.to_csv(mc_path, sep="\t", index=False, header=None)
 
+    mixing = join(resources_path, "melodic_mix")
+    component_maps = join(resources_path, "melodic_IC_thr_MNI2mm.nii.gz")
+
     aroma_workflow(
-        TR=2,
-        affmat=None,
-        den_type="nonaggr",
-        dim=0,
-        generate_plots=False,
-        in_feat=None,
         in_file=nilearn_data.func[0],
-        mask=None,
+        mixing=mixing,
+        component_maps=component_maps,
         mc=mc_path,
-        mel_dir=None,
         out_dir=out_path,
+        TR=2,
+        den_type="nonaggr",
+        generate_plots=False,
         overwrite=True,
-        warp=None,
     )
 
     # Make sure files are generated
@@ -47,9 +45,6 @@ def test_integration(skip_integration, nilearn_data, classification_overview,
     assert isfile(join(out_path, "classified_motion_ICs.txt"))
     assert isfile(join(out_path, "denoised_func_data_nonaggr.nii.gz"))
     assert isfile(join(out_path, "feature_scores.tsv"))
-    assert isfile(join(out_path, "mask.nii.gz"))
-    assert isfile(join(out_path, "melodic_IC_thr.nii.gz"))
-    assert isfile(join(out_path, "melodic_IC_thr_MNI2mm.nii.gz"))
 
     # Check classification overview file
     true_classification_overview = pd.read_csv(classification_overview,

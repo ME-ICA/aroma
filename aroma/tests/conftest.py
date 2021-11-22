@@ -61,8 +61,8 @@ def fetch_file(osf_id, path, filename):
 
 @pytest.fixture(scope="session")
 def testpath(tmp_path_factory):
-    """ Test path that will be used to download all files """
-    return tmp_path_factory.getbasetemp()
+    """Test path that will be used to download all files."""
+    return tmp_path_factory.mktemp(basename="data", numbered=False)
 
 
 @pytest.fixture
@@ -79,6 +79,8 @@ def nilearn_data(testpath):
 # python2 ICA_AROMA.py -o out -i
 # sub-pixar123_task-pixar_space-MNI152NLin2009cAsym_desc-preproc_bold.nii.gz
 # -mc mc.tsv -tr 2 -np
+
+
 @pytest.fixture
 def mel_FT_mix(testpath):
     return fetch_file("uq63z", testpath, "melodic_FTmix")
