@@ -32,6 +32,9 @@ def test_integration(
     mc_path = join(test_path, "mc.txt")
     mc.to_csv(mc_path, sep="\t", index=False, header=None)
 
+    # Add seed for reproducibility
+    np.random.seed(42)
+
     aroma_workflow(
         in_file=nilearn_data.func[0],
         mixing=mel_mix,

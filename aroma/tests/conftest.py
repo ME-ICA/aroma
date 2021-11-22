@@ -123,12 +123,12 @@ def HFC(testpath):
 
 @pytest.fixture
 def classification_overview(testpath):
-    return fetch_file("7wzux", testpath, "classification_overview.txt")
+    return fetch_file("2hv3a", testpath, "classification_overview.txt")
 
 
 @pytest.fixture
 def classified_motion_ICs(testpath):
-    return fetch_file("gytuq", testpath, "classified_motion_ICs.txt")
+    return fetch_file("jnhgc", testpath, "AROMAnoiseICs.csv")
 
 
 @pytest.fixture
