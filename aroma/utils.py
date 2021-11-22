@@ -68,9 +68,7 @@ def classification(features_df, metric_metadata=None):
     if isinstance(metric_metadata, dict):
         metric_metadata["classification"] = {
             "LongName": "Component classification",
-            "Description": (
-                "Classification from the classification procedure."
-            ),
+            "Description": ("Classification from the classification procedure."),
             "Levels": {
                 "accepted": "A component that is determined not to be associated with motion.",
                 "rejected": "A motion-related component.",
@@ -89,8 +87,8 @@ def classification(features_df, metric_metadata=None):
                 "hyperplane": (
                     "After the max_RP_corr and edge_fract values are projected "
                     "to a hyperplane, the projected point is less than zero."
-                )
-            }
+                ),
+            },
         }
 
     # Classify the ICs as motion (rejected) or non-motion (accepted)
@@ -116,11 +114,7 @@ def classification(features_df, metric_metadata=None):
     features_df.loc[rej_hyperplane, "rationale"] += "hyperplane;"
 
     # Classify the ICs
-    is_motion = (
-        (features_df["csf_fract"] > THR_CSF)
-        | (features_df["HFC"] > THR_HFC)
-        | (proj > 0)
-    )
+    is_motion = (features_df["csf_fract"] > THR_CSF) | (features_df["HFC"] > THR_HFC) | (proj > 0)
     assert np.array_equal(is_motion, (features_df["classification"] == "rejected").values)
 
     # Reorder columns and remove trailing semicolons
@@ -235,9 +229,9 @@ def denoising(in_file, out_dir, mixing, den_type, den_idx):
             img_denoised.to_filename(aggr_denoised_file)
     else:
         LGR.warning(
-                    "  - None of the components were classified as motion, "
-                    "so no denoising is applied (the input file is copied "
-                    "as-is)."
+            "  - None of the components were classified as motion, "
+            "so no denoising is applied (the input file is copied "
+            "as-is)."
         )
         if den_type in ("nonaggr", "both"):
             shutil.copyfile(in_file, nonaggr_denoised_file)
@@ -252,12 +246,11 @@ def clean_dataframe(comptable):
     This places "rationale" and "classification" at the end and
     removes trailing semicolons from rationale column.
     """
-    cols_at_end = ['classification', 'rationale']
+    cols_at_end = ["classification", "rationale"]
     comptable = comptable[
-        [c for c in comptable if c not in cols_at_end]
-        + [c for c in cols_at_end if c in comptable]
+        [c for c in comptable if c not in cols_at_end] + [c for c in cols_at_end if c in comptable]
     ]
-    comptable['rationale'] = comptable['rationale'].str.rstrip(';')
+    comptable["rationale"] = comptable["rationale"].str.rstrip(";")
     return comptable
 
 
@@ -283,9 +276,7 @@ def motpars_fmriprep2fsl(confounds):
         raise ValueError("Input must be an existing file or a DataFrame.")
 
     # Rotations are in radians
-    motpars_fsl = confounds[
-        ["rot_x", "rot_y", "rot_z", "trans_x", "trans_y", "trans_z"]
-    ].values
+    motpars_fsl = confounds[["rot_x", "rot_y", "rot_z", "trans_x", "trans_y", "trans_z"]].values
     return motpars_fsl
 
 
@@ -388,9 +379,7 @@ def load_motpars(motion_file, source="auto"):
         elif motion_file.endswith(".txt"):
             source = "fsl"
         else:
-            raise Exception(
-                "Motion parameter source could not be determined automatically."
-            )
+            raise Exception("Motion parameter source could not be determined automatically.")
 
     if source == "spm":
         motpars = motpars_spm2fsl(motion_file)

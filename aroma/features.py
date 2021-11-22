@@ -6,7 +6,7 @@ import numpy as np
 from nilearn import image, masking
 from nilearn._utils import load_niimg
 
-from . import utils
+from aroma import utils
 
 LGR = logging.getLogger(__name__)
 
@@ -79,23 +79,14 @@ def feature_time_series(mel_mix, mc, metric_metadata=None):
 
     # Determine the derivatives of the RPs (add zeros at time-point zero)
     _, nparams = rp6.shape
-    rp6_der = np.vstack((
-        np.zeros(nparams),
-        np.diff(rp6, axis=0)
-    ))
+    rp6_der = np.vstack((np.zeros(nparams), np.diff(rp6, axis=0)))
 
     # Create an RP-model including the RPs and its derivatives
     rp12 = np.hstack((rp6, rp6_der))
 
     # add the fw and bw shifted versions
-    rp12_1fw = np.vstack((
-        np.zeros(2 * nparams),
-        rp12[:-1]
-    ))
-    rp12_1bw = np.vstack((
-        rp12[1:],
-        np.zeros(2 * nparams)
-    ))
+    rp12_1fw = np.vstack((np.zeros(2 * nparams), rp12[:-1]))
+    rp12_1bw = np.vstack((rp12[1:], np.zeros(2 * nparams)))
     rp_model = np.hstack((rp12, rp12_1fw, rp12_1bw))
 
     # Determine the maximum correlation between RPs and IC time-series
@@ -109,9 +100,7 @@ def feature_time_series(mel_mix, mc, metric_metadata=None):
     for i in range(nsplits):
         # Select a random subset of 90% of the dataset rows
         # (*without* replacement)
-        chosen_rows = np.random.choice(a=range(nmixrows),
-                                       size=nrows_to_choose,
-                                       replace=False)
+        chosen_rows = np.random.choice(a=range(nmixrows), size=nrows_to_choose, replace=False)
 
         # Combined correlations between RP and IC time-series, squared and
         # non squared
@@ -293,8 +282,9 @@ def feature_spatial(mel_IC, metric_metadata=None):
         tot_sum = np.sum(temp_IC_data)
 
         if tot_sum == 0:
-            LGR.info("\t- The spatial map of component {} is empty. "
-                     "Please check!".format(i + 1))
+            LGR.info(
+                "\t- The spatial map of component {} is empty. " "Please check!".format(i + 1)
+            )
 
         # Get sum of Z-values of the voxels located within the CSF
         # (calculate via the mean and number of non-zero voxels)
