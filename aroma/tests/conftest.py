@@ -23,7 +23,7 @@ def skip_integration(request):
 @pytest.fixture(scope="session")
 def testpath(tmp_path_factory):
     """Test path that will be used to download all files."""
-    return tmp_path_factory.getbasetemp()
+    return tmp_path_factory.mktemp(basename='data', numbered=False)
 
 
 @pytest.fixture

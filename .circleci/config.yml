@@ -183,7 +183,7 @@ jobs:
             mkdir /tmp/src/coverage
             mv /tmp/src/aroma/.coverage /tmp/src/coverage/.coverage.integration36
       - store_artifacts:
-          path: /tmp/data
+          path: /tmp/pytest-of-root/pytest-0/data
       - persist_to_workspace:
           root: /tmp
           paths:
@@ -208,7 +208,7 @@ jobs:
             mkdir /tmp/src/coverage
             mv /tmp/src/aroma/.coverage /tmp/src/coverage/.coverage.integration37
       - store_artifacts:
-          path: /tmp/data
+          path: /tmp/pytest-of-root/pytest-0/data
       - persist_to_workspace:
           root: /tmp
           paths:
@@ -230,7 +230,7 @@ jobs:
             source activate aroma_py37  # depends on makeenv_37
             make lint
       - store_artifacts:
-          path: /tmp/data/lint
+          path: /tmp/report_lint.txt
 
   build_docs:
     docker:

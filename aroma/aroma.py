@@ -195,7 +195,6 @@ def aroma_workflow(
 
     if generate_plots:
         from . import plotting
-
         plotting.classification_plot(
             op.join(out_dir, "desc-AROMA_metrics.tsv"), out_dir
         )
