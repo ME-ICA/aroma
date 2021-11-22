@@ -78,12 +78,12 @@ def nilearn_data(testpath):
 
 @pytest.fixture
 def mel_FT_mix(testpath):
-    return fetch_file("uq63z", testpath, "melodic_FTmix")
+    return fetch_file("ezhfg", testpath, "melodic_FTmix")
 
 
 @pytest.fixture
 def mel_mix(testpath):
-    return fetch_file("teh37", testpath, "melodic_mix")
+    return fetch_file("69j2h", testpath, "melodic_mix")
 
 
 @pytest.fixture
@@ -93,7 +93,7 @@ def mc(testpath):
 
 @pytest.fixture
 def mel_IC(testpath):
-    return fetch_file("rqb5n", testpath, "melodic_IC_thr_MNI2mm.nii.gz")
+    return fetch_file("bw3mq", testpath, "melodic_IC_thr_MNI2mm.nii.gz")
 
 
 @pytest.fixture
