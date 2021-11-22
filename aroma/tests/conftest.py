@@ -23,7 +23,7 @@ def skip_integration(request):
 
 def fetch_file(osf_id, path, filename):
     """
-    Fetches file located on OSF and downloads to `path`/`filename`1
+    Fetches file located on OSF and downloads to `path`/`filename`.
 
     Parameters
     ----------
