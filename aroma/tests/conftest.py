@@ -1,11 +1,10 @@
 import os
 import ssl
 from urllib.request import urlretrieve
-import pytest
-
-from nilearn.datasets import fetch_development_fmri
 
 import aroma
+import pytest
+from nilearn.datasets import fetch_development_fmri
 
 
 def pytest_addoption(parser):
@@ -45,11 +44,15 @@ def fetch_file(osf_id, path, filename):
     """
     # This restores the same behavior as before.
     # this three lines make tests dowloads work in windows
-    if os.name == 'nt':
+    if os.name == "nt":
         orig_sslsocket_init = ssl.SSLSocket.__init__
-        ssl.SSLSocket.__init__ = lambda *args, cert_reqs=ssl.CERT_NONE, **kwargs: orig_sslsocket_init(*args, cert_reqs=ssl.CERT_NONE, **kwargs)
+        ssl.SSLSocket.__init__ = (
+            lambda *args, cert_reqs=ssl.CERT_NONE, **kwargs: orig_sslsocket_init(
+                *args, cert_reqs=ssl.CERT_NONE, **kwargs
+            )
+        )
         ssl._create_default_https_context = ssl._create_unverified_context
-    url = 'https://osf.io/{}/download'.format(osf_id)
+    url = "https://osf.io/{}/download".format(osf_id)
     full_path = os.path.join(path, filename)
     if not os.path.isfile(full_path):
         urlretrieve(url, full_path)
@@ -64,13 +67,13 @@ def testpath(tmp_path_factory):
 
 @pytest.fixture
 def featurespath():
-    return op.join(op.dirname(aroma.__file__), 'tests', 'data', 'features_test')
+    return os.path.join(os.path.dirname(aroma.__file__), "tests", "data", "features_test")
 
 
 @pytest.fixture
 def nilearn_data(testpath):
-    return fetch_development_fmri(n_subjects=1, age_group="adult",
-                                  data_dir=str(testpath))
+    return fetch_development_fmri(n_subjects=1, age_group="adult", data_dir=str(testpath))
+
 
 # Feature outputs generated with the following command (adding breakpoints to save results)
 # python2 ICA_AROMA.py -o out -i
@@ -78,68 +81,57 @@ def nilearn_data(testpath):
 # -mc mc.tsv -tr 2 -np
 @pytest.fixture
 def mel_FT_mix(testpath):
-    return fetch_file('uq63z', testpath,
-                      'melodic_FTmix')
+    return fetch_file("uq63z", testpath, "melodic_FTmix")
 
 
 @pytest.fixture
 def mel_mix(testpath):
-    return fetch_file('teh37', testpath,
-                    'melodic_mix')
+    return fetch_file("teh37", testpath, "melodic_mix")
 
 
 @pytest.fixture
 def mc(testpath):
-    return fetch_file('hyq62', testpath,
-                    'mc.tsv')
+    return fetch_file("af275", testpath, "mc_fmriprep.tsv")
 
 
 @pytest.fixture
 def mel_IC(testpath):
-    return fetch_file('rqb5n', testpath,
-                    'melodic_IC_thr_MNI2mm.nii.gz')
+    return fetch_file("rqb5n", testpath, "melodic_IC_thr_MNI2mm.nii.gz")
 
 
 @pytest.fixture
 def csfFract(testpath):
-    return fetch_file('fw6mu', testpath,
-                    'csfFract.npy')
+    return fetch_file("fw6mu", testpath, "csfFract.npy")
 
 
 @pytest.fixture
 def edgeFract(testpath):
-    return fetch_file('2y6rf', testpath,
-                    'edgeFract.npy')
+    return fetch_file("2y6rf", testpath, "edgeFract.npy")
 
 
 @pytest.fixture
 def max_correls(testpath):
-    return fetch_file('u9dwp', testpath,
-                    'max_correls.npy')
+    return fetch_file("u9dwp", testpath, "max_correls.npy")
 
 
 @pytest.fixture
 def HFC(testpath):
-    return fetch_file('ur7pq', testpath,
-                    'HFC.npy')
+    return fetch_file("ur7pq", testpath, "HFC.npy")
 
 
 @pytest.fixture
 def classification_overview(testpath):
-    return fetch_file('7wzux', testpath,
-                    'classification_overview.txt')
+    return fetch_file("7wzux", testpath, "classification_overview.txt")
 
 
 @pytest.fixture
 def classified_motion_ICs(testpath):
-    return fetch_file('gytuq', testpath,
-                      'classified_motion_ICs.txt')
+    return fetch_file("gytuq", testpath, "classified_motion_ICs.txt")
 
 
 @pytest.fixture
 def feature_scores(testpath):
-    return fetch_file('cxwfk', testpath,
-                      'feature_scores.txt')
+    return fetch_file("cxwfk", testpath, "feature_scores.txt")
 
 
 @pytest.fixture
@@ -149,9 +141,9 @@ def motion_parameters(testpath):
     All outputs manually converted from FSL version.
     """
     files = {
-        "FSL": fetch_file('ahtrv', testpath, 'mc_fsl.txt'),
-        "AfNI": fetch_file('p6ybt', testpath, 'mc_afni.1D'),
-        "SPM": fetch_file('ct6q4', testpath, 'rp_mc_spm.txt'),
-        "fMRIPrep": fetch_file('af275', testpath, 'mc_fmriprep.tsv'),
+        "FSL": fetch_file("ahtrv", testpath, "mc_fsl.txt"),
+        "AfNI": fetch_file("p6ybt", testpath, "mc_afni.1D"),
+        "SPM": fetch_file("ct6q4", testpath, "rp_mc_spm.txt"),
+        "fMRIPrep": fetch_file("af275", testpath, "mc_fmriprep.tsv"),
     }
     return files
