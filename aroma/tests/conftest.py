@@ -66,8 +66,13 @@ def testpath(tmp_path_factory):
 
 
 @pytest.fixture
-def featurespath():
-    return os.path.join(os.path.dirname(aroma.__file__), "tests", "data", "features_test")
+def base_test_path():
+    return op.join(op.dirname(aroma.__file__), "tests", "data")
+
+
+@pytest.fixture
+def featurespath(base_test_path):
+    return op.join(base_test_path, "features_test")
 
 
 @pytest.fixture

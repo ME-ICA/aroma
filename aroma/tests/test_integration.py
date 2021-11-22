@@ -1,4 +1,5 @@
-from os.path import isfile, join, split
+"""Integration tests for aroma."""
+import os.path as op
 
 import numpy as np
 import pandas as pd
@@ -6,31 +7,27 @@ import pytest
 from aroma.aroma import aroma_workflow
 
 
-def test_integration(
-    skip_integration,
-    nilearn_data,
-    classification_overview,
-    classified_motion_ICs,
-    feature_scores,
-    mel_mix,
-    mel_IC,
-):
+def test_integration(skip_integration, nilearn_data):
+    """Perform integration test."""
     if skip_integration:
         pytest.skip("Skipping integration test")
 
     # Obtain test path
-    test_path, _ = split(nilearn_data.func[0])
+    test_path, _ = op.split(nilearn_data.func[0])
 
     # Create output path
-    out_path = join(test_path, "out")
+    out_path = op.join(test_path, "out")
 
     # Read confounds
-    confounds = pd.read_csv(nilearn_data.confounds[0], sep="\t")
+    confounds = pd.read_table(nilearn_data.confounds[0])
 
     # Extract motion parameters from confounds
     mc = confounds[["rot_x", "rot_y", "rot_z", "trans_x", "trans_y", "trans_z"]]
-    mc_path = join(test_path, "mc.txt")
+    mc_path = op.join(test_path, "mc.txt")
     mc.to_csv(mc_path, sep="\t", index=False, header=None)
+
+    mixing = op.join(resources_path, "melodic_mix")
+    component_maps = op.join(resources_path, "melodic_IC_thr_MNI2mm.nii.gz")
 
     # Add seed for reproducibility
     np.random.seed(42)
@@ -48,34 +45,32 @@ def test_integration(
     )
 
     # Make sure files are generated
-    assert isfile(join(out_path, "classification_overview.txt"))
-    assert isfile(join(out_path, "classified_motion_ICs.txt"))
-    assert isfile(join(out_path, "denoised_func_data_nonaggr.nii.gz"))
-    assert isfile(join(out_path, "feature_scores.tsv"))
+    assert op.isfile(op.join(out_path, "desc-AROMA_metrics.tsv"))
+    assert op.isfile(op.join(out_path, "AROMAnoiseICs.csv"))
+    assert op.isfile(op.join(out_path, "desc-smoothAROMAnonaggr_bold.nii.gz"))
 
-    # Check classification overview file
-    true_classification_overview = pd.read_csv(
-        classification_overview,
-        sep="\t",
+    # Load classification overview file
+    true_classification_overview = pd.read_table(
+        op.join(resources_path, "classification_overview.txt"),
         index_col="IC",
-        nrows=4,
     )
-    classification_overview = pd.read_csv(
-        join(out_path, "classification_overview.txt"), sep="\t", index_col="IC", nrows=4
-    )
-
-    assert np.allclose(
-        true_classification_overview.iloc[:, :-1].values,
-        classification_overview.iloc[:, :-1].values,
-        atol=0.9,
+    test_classification_overview = pd.read_table(
+        op.join(out_path, "desc-AROMA_metrics.tsv"),
+        index_col="IC",
     )
 
     #  Check feature scores
-    f_scores = pd.read_table(join(out_path, "feature_scores.tsv"))
-    f_true = pd.read_table(feature_scores)
-    assert np.allclose(f_true.values, f_scores.values, atol=0.9)
+    f_scores = test_classification_overview[["edge_fract", "csf_fract", "max_RP_corr", "HFC"]]
+    f_true = true_classification_overview[["edge_fract", "csf_fract", "max_RP_corr", "HFC"]]
+    assert np.allclose(f_true.values, f_scores.values, atol=0.01), f_true.values - f_scores.values
+
+    # Check classifications
+    assert (
+        true_classification_overview["classification"].tolist()
+        == test_classification_overview["classification"].tolist()
+    )
 
     # Check motion ICs
-    mot_ics = np.loadtxt(join(out_path, "classified_motion_ICs.txt"), delimiter=",")
-    true_mot_ics = np.loadtxt(classified_motion_ICs, delimiter=",")
-    assert np.allclose(true_mot_ics[:4], mot_ics[:4])
+    test_mot_ics = np.loadtxt(op.join(out_path, "AROMAnoiseICs.csv"), delimiter=",")
+    true_mot_ics = np.loadtxt(op.join(resources_path, "AROMAnoiseICs.csv"), delimiter=",")
+    assert np.allclose(true_mot_ics, test_mot_ics)

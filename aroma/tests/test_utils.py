@@ -1,9 +1,20 @@
 """Tests for aroma.utils."""
+import os
+
 import numpy as np
-
+import pandas as pd
 import pytest
-
 from aroma import utils
+
+
+def test_classification(base_test_path):
+    """Test aroma.utils.classification and ensure classifications come out the same."""
+    clf_overview_df = pd.read_table(os.path.join(base_test_path, "classification_overview.txt"))
+    test_df = clf_overview_df[["edge_fract", "csf_fract", "max_RP_corr", "HFC"]]
+    test_df, metadata = utils.classification(test_df, {})
+    true_classifications = clf_overview_df["classification"].tolist()
+    test_classifications = test_df["classification"].tolist()
+    assert true_classifications == test_classifications
 
 
 def test_load_motpars_manual(motion_parameters):
