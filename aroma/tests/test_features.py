@@ -6,6 +6,9 @@ def test_feature_time_series(mel_mix, mc, max_correls):
 
     np.random.seed(1)
 
+    # Read mel_mix
+    mel_mix = np.loadtxt(mel_mix)
+
     # Run feature_time_series
     max_RP_corr = features.feature_time_series(mel_mix, mc)
 
@@ -18,6 +21,9 @@ def test_feature_time_series(mel_mix, mc, max_correls):
 def test_feature_frequency(mel_FT_mix, HFC):
 
     np.random.seed(1)
+
+    # Read mel_FT_mix
+    mel_FT_mix = np.loadtxt(mel_FT_mix)
 
     # Run feature_frequency
     HFC_test = features.feature_frequency(mel_FT_mix, TR=2)
