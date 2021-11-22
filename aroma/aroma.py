@@ -165,26 +165,38 @@ def aroma_workflow(
         )
 
     LGR.info("  - extracting the CSF & Edge fraction features")
+    metric_metadata = {}
     features_df = pd.DataFrame()
-    features_df["edge_fract"], features_df["csf_fract"] = features.feature_spatial(
-        component_maps
-    )
+    (
+        features_df["edge_fract"],
+        features_df["csf_fract"],
+        metric_metadata
+    ) = features.feature_spatial(component_maps, metric_metadata)
 
     LGR.info("  - extracting the Maximum RP correlation feature")
-    features_df["max_RP_corr"] = features.feature_time_series(mixing, motion_params)
+    features_df["max_RP_corr"], metric_metadata = features.feature_time_series(
+        mixing,
+        motion_params,
+        metric_metadata,
+    )
 
     LGR.info("  - extracting the High-frequency content feature")
     # Should probably check that the frequencies match up with MELODIC's outputs
     mel_FT_mix, FT_freqs = utils.get_spectrum(mixing, TR)
-    features_df["HFC"] = features.feature_frequency(mel_FT_mix, TR)
+    features_df["HFC"], metric_metadata = features.feature_frequency(
+        mel_FT_mix,
+        TR,
+        metric_metadata,
+    )
 
     LGR.info("  - classification")
-    motion_ICs = utils.classification(features_df, out_dir)
+    features_df, metric_metadata = utils.classification(features_df, metric_metadata)
+    motion_ICs = utils.write_metrics(features_df, out_dir, metric_metadata)
 
     if generate_plots:
         from . import plotting
         plotting.classification_plot(
-            op.join(out_dir, "classification_overview.txt"), out_dir
+            op.join(out_dir, "desc-AROMA_metrics.tsv"), out_dir
         )
 
     if den_type != "no":
