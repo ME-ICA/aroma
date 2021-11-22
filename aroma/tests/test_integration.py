@@ -32,6 +32,9 @@ def test_integration(skip_integration, nilearn_data):
     mixing = op.join(resources_path, "melodic_mix")
     component_maps = op.join(resources_path, "melodic_IC_thr_MNI2mm.nii.gz")
 
+    # Add seed for reproducibility
+    np.random.seed(42)
+
     aroma_workflow(
         in_file=nilearn_data.func[0],
         mixing=mixing,
