@@ -66,16 +66,6 @@ def testpath(tmp_path_factory):
 
 
 @pytest.fixture
-def base_test_path():
-    return op.join(op.dirname(aroma.__file__), "tests", "data")
-
-
-@pytest.fixture
-def featurespath(base_test_path):
-    return op.join(base_test_path, "features_test")
-
-
-@pytest.fixture
 def nilearn_data(testpath):
     return fetch_development_fmri(n_subjects=1, age_group="adult", data_dir=str(testpath))
 

@@ -7,7 +7,9 @@ import pytest
 from aroma.aroma import aroma_workflow
 
 
-def test_integration(skip_integration, nilearn_data):
+def test_integration(
+    skip_integration, nilearn_data, mel_mix, mel_IC, classification_overview, classified_motion_ICs
+):
     """Perform integration test."""
     if skip_integration:
         pytest.skip("Skipping integration test")
@@ -25,9 +27,6 @@ def test_integration(skip_integration, nilearn_data):
     mc = confounds[["rot_x", "rot_y", "rot_z", "trans_x", "trans_y", "trans_z"]]
     mc_path = op.join(test_path, "mc.txt")
     mc.to_csv(mc_path, sep="\t", index=False, header=None)
-
-    mixing = op.join(resources_path, "melodic_mix")
-    component_maps = op.join(resources_path, "melodic_IC_thr_MNI2mm.nii.gz")
 
     # Add seed for reproducibility
     np.random.seed(42)
@@ -51,7 +50,7 @@ def test_integration(skip_integration, nilearn_data):
 
     # Load classification overview file
     true_classification_overview = pd.read_table(
-        op.join(resources_path, "classification_overview.txt"),
+        classification_overview,
         index_col="IC",
     )
     test_classification_overview = pd.read_table(
@@ -72,5 +71,5 @@ def test_integration(skip_integration, nilearn_data):
 
     # Check motion ICs
     test_mot_ics = np.loadtxt(op.join(out_path, "AROMAnoiseICs.csv"), delimiter=",")
-    true_mot_ics = np.loadtxt(op.join(resources_path, "AROMAnoiseICs.csv"), delimiter=",")
+    true_mot_ics = np.loadtxt(classified_motion_ICs, delimiter=",")
     assert np.allclose(true_mot_ics, test_mot_ics)
