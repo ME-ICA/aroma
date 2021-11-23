@@ -39,7 +39,7 @@ def cross_correlation(a, b):
     return np.corrcoef(a.T, b.T)[:ncols_a, ncols_a:]
 
 
-def denoising(fsl_dir, in_file, out_dir, mixing, den_type, den_idx):
+def denoising(in_file, out_dir, mixing, den_type, den_idx):
     """Remove noise components from fMRI data.
 
     Parameters

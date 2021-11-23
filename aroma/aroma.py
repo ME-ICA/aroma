@@ -185,8 +185,8 @@ def aroma_workflow(
     )
 
     LGR.info("  - classification")
-    classified_features = classification.predict(features_df, metric_metadata=metric_metadata)
-    features_df["classification"] = classified_features
+    classification_labels = classification.predict(features_df, metric_metadata=metric_metadata)
+    features_df["classification"] = classification_labels
     motion_ICs = io.write_metrics(features_df, out_dir, metric_metadata)
 
     if generate_plots:
@@ -196,8 +196,8 @@ def aroma_workflow(
 
     if den_type != "no":
         LGR.info("Step 3) Data denoising")
-        # Indexes of the components that should be regressed out
-        regress_out = features_df[classified_features].index
-        utils.denoising(in_file, out_dir, mixing, den_type, motion_ICs, regress_out)
+        # Index of the components that were classified as "rejected"
+        rejected_components = np.where(classification_labels == "rejected")[0]
+        utils.denoising(in_file, out_dir, mixing, den_type, rejected_components)
 
     LGR.info("Finished")
