@@ -9,7 +9,7 @@ import nibabel as nib
 import numpy as np
 import pandas as pd
 
-from aroma import _version, features, utils
+from aroma import _version, classification, features, io, utils
 
 LGR = logging.getLogger(__name__)
 
@@ -77,25 +77,22 @@ def aroma_workflow(
         )
         return
     elif op.isdir(out_dir) and overwrite:
-        LGR.warning(
-            "Output directory {} exists and will be overwritten."
-            "\n".format(out_dir)
-        )
+        LGR.warning("Output directory {} exists and will be overwritten." "\n".format(out_dir))
         shutil.rmtree(out_dir)
         os.makedirs(out_dir)
     else:
         os.makedirs(out_dir)
 
     # Create logfile name
-    basename = 'aroma_'
-    extension = 'tsv'
-    isotime = datetime.datetime.now().strftime('%Y-%m-%dT%H%M%S')
-    logname = os.path.join(out_dir, (basename + isotime + '.' + extension))
+    basename = "aroma_"
+    extension = "tsv"
+    isotime = datetime.datetime.now().strftime("%Y-%m-%dT%H%M%S")
+    logname = os.path.join(out_dir, (basename + isotime + "." + extension))
 
     # Set logging format
     log_formatter = logging.Formatter(
-        '%(asctime)s\t%(name)-12s\t%(levelname)-8s\t%(message)s',
-        datefmt='%Y-%m-%dT%H:%M:%S')
+        "%(asctime)s\t%(name)-12s\t%(levelname)-8s\t%(message)s", datefmt="%Y-%m-%dT%H:%M:%S"
+    )
 
     # Set up logging file and open it for writing
     log_handler = logging.FileHandler(logname)
@@ -104,20 +101,22 @@ def aroma_workflow(
 
     # add logger mode options
     if quiet:
-        logging.basicConfig(level=logging.WARNING,
-                            handlers=[log_handler, sh],
-                            format='%(levelname)-10s %(message)s')
+        logging.basicConfig(
+            level=logging.WARNING,
+            handlers=[log_handler, sh],
+            format="%(levelname)-10s %(message)s",
+        )
     elif debug:
-        logging.basicConfig(level=logging.DEBUG,
-                            handlers=[log_handler, sh],
-                            format='%(levelname)-10s %(message)s')
+        logging.basicConfig(
+            level=logging.DEBUG, handlers=[log_handler, sh], format="%(levelname)-10s %(message)s"
+        )
     else:
-        logging.basicConfig(level=logging.INFO,
-                            handlers=[log_handler, sh],
-                            format='%(levelname)-10s %(message)s')
+        logging.basicConfig(
+            level=logging.INFO, handlers=[log_handler, sh], format="%(levelname)-10s %(message)s"
+        )
 
-    version_number = _version.get_versions()['version']
-    LGR.info(f'Currently running ICA-AROMA version {version_number}')
+    version_number = _version.get_versions()["version"]
+    LGR.info(f"Currently running ICA-AROMA version {version_number}")
 
     # Check if the type of denoising is correctly specified, when specified
     if den_type not in ("nonaggr", "aggr", "both", "no"):
@@ -135,11 +134,7 @@ def aroma_workflow(
 
     # Check TR
     if TR == 1:
-        LGR.warning(
-            "Please check whether the determined TR (of "
-            + str(TR)
-            + "s) is correct!\n"
-        )
+        LGR.warning("Please check whether the determined TR (of " + str(TR) + "s) is correct!\n")
     elif TR == 0:
         raise Exception(
             "TR is zero. ICA-AROMA requires a valid TR and will therefore "
@@ -170,7 +165,7 @@ def aroma_workflow(
     (
         features_df["edge_fract"],
         features_df["csf_fract"],
-        metric_metadata
+        metric_metadata,
     ) = features.feature_spatial(component_maps, metric_metadata)
 
     LGR.info("  - extracting the Maximum RP correlation feature")
@@ -190,17 +185,19 @@ def aroma_workflow(
     )
 
     LGR.info("  - classification")
-    features_df, metric_metadata = utils.classification(features_df, metric_metadata)
-    motion_ICs = utils.write_metrics(features_df, out_dir, metric_metadata)
+    classified_features = classification.predict(features_df, metric_metadata=metric_metadata)
+    features_df["classification"] = classified_features
+    motion_ICs = io.write_metrics(features_df, out_dir, metric_metadata)
 
     if generate_plots:
-        from . import plotting
-        plotting.classification_plot(
-            op.join(out_dir, "desc-AROMA_metrics.tsv"), out_dir
-        )
+        from aroma import plotting
+
+        plotting.classification_plot(op.join(out_dir, "desc-AROMA_metrics.tsv"), out_dir)
 
     if den_type != "no":
         LGR.info("Step 3) Data denoising")
-        utils.denoising(in_file, out_dir, mixing, den_type, motion_ICs)
+        # Indexes of the components that should be regressed out
+        regress_out = features_df[classified_features].index
+        utils.denoising(in_file, out_dir, mixing, den_type, motion_ICs, regress_out)
 
     LGR.info("Finished")

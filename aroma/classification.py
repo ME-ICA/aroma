@@ -18,10 +18,62 @@ LGR = logging.getLogger(__name__)
 # hyperplane-parameters)
 THR_CSF = 0.10
 THR_HFC = 0.35
-HYPERPLANE = [-19.9751070082159, 9.95127547670627, 24.8333160239175]
+HYPERPLANE = np.array([-19.9751070082159, 9.95127547670627, 24.8333160239175])
 
 
-def predict(X, thr_csf=THR_CSF, thr_hfc=THR_HFC, hplane=HYPERPLANE):
+def hfc_criteria(x, thr_hfc=THR_HFC):
+    """
+    Compute the HFC criteria for classification.
+
+    Parameters
+    ----------
+    x : numpy.ndarray
+        Projection of HFC feature scores to new 1D space.
+
+    Returns
+    -------
+    numpy.ndarray
+        Classification (``True`` if the component is a motion one).
+    """
+    return x > thr_hfc
+
+
+def csf_criteria(x, thr_csf=THR_CSF):
+    """
+    Compute the CSF criteria for classification.
+
+    Parameters
+    ----------
+    x : numpy.ndarray
+        Projection of CSF-fraction feature scores to new 1D space.
+
+    Returns
+    -------
+    numpy.ndarray
+        Classification (``True`` if the component is a CSF one).
+    """
+    return x > thr_csf
+
+
+def hplane_criteria(x, hplane=HYPERPLANE):
+    """
+    Compute the hyperplane criteria for classification.
+
+    Parameters
+    ----------
+    x : numpy.ndarray
+        Projection of edge & max_RP_corr feature scores to new 1D space.
+
+    Returns
+    -------
+    :obj:`pandas.DataFrame`
+        Features table with additional column "classification".
+
+    """
+    return (hplane[0] + np.dot(x, hplane[1:])) > 0
+
+
+def predict(X, thr_csf=THR_CSF, thr_hfc=THR_HFC, hplane=HYPERPLANE, metric_metadata=None):
     """
     Classify components as motion or non-motion based on four features.
 
@@ -38,11 +90,21 @@ def predict(X, thr_csf=THR_CSF, thr_hfc=THR_HFC, hplane=HYPERPLANE):
     -------
     y : array_like
         Classification (``True`` if the component is a motion one).
-
     """
     # Project edge & max_RP_corr feature scores to new 1D space
-    x = X[["max_RP_corr", "edge_fract"]].values
-    proj = (hplane[0] + np.dot(x.T, hplane[1:])) > 0
+    proj = hplane_criteria(X[["max_RP_corr", "edge_fract"]].values, hplane=hplane)
+
+    # Compute the CSF criteria
+    csf = csf_criteria(X["csf_fract"].values, thr_csf=thr_csf)
+
+    # Compute the HFC criteria
+    hfc = hfc_criteria(X["HFC"].values, thr_hfc=thr_hfc)
+
+    # Combine the criteria
+    classification = csf | hfc | proj
+
+    #  Turn classification into a list of string labels with rejected if true, accepted if false
+    classification = ["rejected" if c else "accepted" for c in classification]
 
     # Classify the ICs
-    return (X["csf_fract"] > thr_csf) | (X["HFC"] > thr_hfc) | proj
+    return classification
