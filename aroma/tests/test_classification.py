@@ -9,5 +9,4 @@ def test_classification(classification_overview):
     test_df = clf_overview_df[["edge_fract", "csf_fract", "max_RP_corr", "HFC"]]
     test_classifications = classification.predict(test_df, metric_metadata={})
     true_classifications = clf_overview_df["classification"].tolist()
-    breakpoint()
     assert true_classifications == test_classifications
