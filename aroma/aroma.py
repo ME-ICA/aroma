@@ -77,7 +77,7 @@ def aroma_workflow(
         )
         return
     elif op.isdir(out_dir) and overwrite:
-        LGR.warning("Output directory {} exists and will be overwritten." "\n".format(out_dir))
+        LGR.warning("Output directory {} exists and will be overwritten.\n".format(out_dir))
         shutil.rmtree(out_dir)
         os.makedirs(out_dir)
     else:
