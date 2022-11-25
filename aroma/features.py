@@ -276,8 +276,7 @@ def feature_spatial(mel_IC, metric_metadata=None):
         # Change to absolute Z-values
         temp_IC = image.math_img("np.abs(img)", img=temp_IC)
 
-        # Get sum of Z-values within the total Z-map (calculate via the mean
-        # and number of non-zero voxels)
+        # Get sum of Z-values within the total Z-map
         temp_IC_data = temp_IC.get_fdata()
         tot_sum = np.sum(temp_IC_data)
 
@@ -287,17 +286,14 @@ def feature_spatial(mel_IC, metric_metadata=None):
             )
 
         # Get sum of Z-values of the voxels located within the CSF
-        # (calculate via the mean and number of non-zero voxels)
         csf_data = masking.apply_mask(temp_IC, csf_mask)
         csf_sum = np.sum(csf_data)
 
         # Get sum of Z-values of the voxels located within the Edge
-        # (calculate via the mean and number of non-zero voxels)
         edge_data = masking.apply_mask(temp_IC, edge_mask)
         edge_sum = np.sum(edge_data)
 
         # Get sum of Z-values of the voxels located outside the brain
-        # (calculate via the mean and number of non-zero voxels)
         out_data = masking.apply_mask(temp_IC, out_mask)
         out_sum = np.sum(out_data)
 
