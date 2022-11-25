@@ -27,7 +27,13 @@ def aroma_workflow(
     debug=False,
     quiet=False,
     mc_source="auto",
-    f_hp=0.01
+    f_hp=0.01,
+    T2star_map=None,
+    brain_mask=None,
+    T2star_thresh=0.08,
+    erode_csf_voxels=2,
+    erode_edge_voxels=2,
+    dilate_out_voxels=0
 ):
     """Run the AROMA workflow.
 
@@ -56,6 +62,21 @@ def aroma_workflow(
         What format is the mc file in?
     f_hp : float, optional
         High-pass cutoff frequency in spectrum computations.
+    T2star_map : str, optional
+        path to nifti file with T2star map.
+    brain_mask: str, optional
+        path to nifti file with brain mask
+    T2star_thresh: float, optional
+        mask will only consider voxels with T2-star values
+        above T2star_thresh. Default value of 0.080 sec assumes 3T 
+        acquisition.
+    erode_voxels: : int, optional
+        number of voxels to erode (radius of ball)
+    erode_edge_voxels: int, optional
+        Number of voxels to erode in order to compute the edge mask.
+    dilate_out_voxels: int, optional
+        Number of voxels to erode in order to compute the out-of-brain mask
+
     """
     if not op.isfile(in_file):
         raise FileNotFoundError(f"Input file does not exist: {in_file}")
@@ -167,6 +188,23 @@ def aroma_workflow(
             f"number of rows in motion parameters ({motion_params.shape[0]})."
         )
 
+    # Compute spatial metrics (CSF & Edge fraction)
+
+    # create csf mask
+    if (T2star_map is None) and (brain_mask is None) :
+        masks_dir = utils.get_resource_path()
+        csf_mask = os.path.join(masks_dir, "mask_csf.nii.gz")
+    else:
+        csf_mask = utils.csf_mask_from_T2star(T2star_map,brain_mask,out_dir,T2star_thresh,erode_csf_voxels)
+
+    # create edge and out-of-the-brain masks
+    if brain_mask is None:
+        masks_dir = utils.get_resource_path()
+        edge_mask = os.path.join(masks_dir, "mask_edge.nii.gz")
+        out_mask = os.path.join(masks_dir, "mask_out.nii.gz")
+    else:
+        edge_mask,out_mask = utils.edge_out_mask(brain_mask,out_dir,erode_edge_voxels,dilate_out_voxels)
+
     LGR.info("  - extracting the CSF & Edge fraction features")
     metric_metadata = {}
     features_df = pd.DataFrame()
@@ -174,8 +212,9 @@ def aroma_workflow(
         features_df["edge_fract"],
         features_df["csf_fract"],
         metric_metadata
-    ) = features.feature_spatial(component_maps, metric_metadata)
+    ) = features.feature_spatial(component_maps, csf_mask, edge_mask, out_mask, metric_metadata)
 
+    # Compute temporal metrics (correlation with RP)
     LGR.info("  - extracting the Maximum RP correlation feature")
     features_df["max_RP_corr"], metric_metadata = features.feature_time_series(
         mixing,
@@ -183,6 +222,7 @@ def aroma_workflow(
         metric_metadata,
     )
 
+    # Compute frequency metrics (half-power frequency)
     LGR.info("  - extracting the High-frequency content feature")
     # Should probably check that the frequencies match up with MELODIC's outputs
     mel_FT_mix, FT_freqs = utils.get_spectrum(mixing, TR)

@@ -200,7 +200,13 @@ def feature_frequency(
     return HFC, metric_metadata
 
 
-def feature_spatial(mel_IC, metric_metadata=None):
+def feature_spatial(
+    mel_IC,
+    csf_mask,
+    edge_mask,
+    out_mask,
+    metric_metadata=None
+):
     """Extract the spatial feature scores.
 
     For each IC it determines the fraction of the mixture modeled thresholded
@@ -268,10 +274,10 @@ def feature_spatial(mel_IC, metric_metadata=None):
     mel_IC_img = load_niimg(mel_IC)
     num_ICs = mel_IC_img.shape[3]
 
-    masks_dir = utils.get_resource_path()
-    csf_mask = os.path.join(masks_dir, "mask_csf.nii.gz")
-    edge_mask = os.path.join(masks_dir, "mask_edge.nii.gz")
-    out_mask = os.path.join(masks_dir, "mask_out.nii.gz")
+    # masks_dir = utils.get_resource_path()
+    # csf_mask = os.path.join(masks_dir, "mask_csf.nii.gz")
+    # edge_mask = os.path.join(masks_dir, "mask_edge.nii.gz")
+    # out_mask = os.path.join(masks_dir, "mask_out.nii.gz")
 
     # Loop over ICs
     edge_fract = np.zeros(num_ICs)
