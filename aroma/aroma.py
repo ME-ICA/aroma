@@ -174,7 +174,7 @@ def aroma_workflow(
         features_df["edge_fract"],
         features_df["csf_fract"],
         metric_metadata
-    ) = features.feature_spatial(component_maps, metric_metadata)
+    ) = features.feature_spatial(component_maps, csf_mask, edge_mask, out_mask, metric_metadata)
 
     LGR.info("  - extracting the Maximum RP correlation feature")
     features_df["max_RP_corr"], metric_metadata = features.feature_time_series(

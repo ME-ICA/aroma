@@ -3,12 +3,14 @@ import json
 import logging
 import os.path as op
 import shutil
+import tempfile
 
 import nibabel as nib
 import numpy as np
 import pandas as pd
+from scipy.ndimage import binary_erosion, binary_dilation
 from nilearn import masking
-from nilearn._utils import load_niimg
+from nilearn._utils import load_niimg, copy_img
 
 LGR = logging.getLogger(__name__)
 
@@ -438,3 +440,62 @@ def get_spectrum(data: np.array, tr: float):
     freqs = np.fft.rfftfreq((power_spectrum.shape[0] * 2) - 1, tr)
     idx = np.argsort(freqs)
     return power_spectrum[idx, :], freqs[idx]
+
+def create_csf_mask(T2star_map:str=None, brain_mask:str=None, T2star_thresh:float= 0.080):
+    """"Create mask of ventricle CSF based on T2-star map. 
+
+    Parameters
+    ----------
+    T2star_map: str
+        path to nifti file with T2star map.
+    brain_mask: str
+        path to nifti file with brain mask
+    T2star_thresh: :obj:`float`
+        mask will only consider voxels with T2-star values
+        above T2star_thresh. Default value of 0.080 sec assumes 3T 
+        acquisition.
+
+    Returns
+    -------
+    csf_mask: path to nifti volume with binary mask of ventricle CSF.
+    """
+
+    T2star_img = load_niimg(T2star_map)
+    brain_mask_img = load_niimg(brain_mask).dataobj > 0.5
+
+    # only keep CSF voxels in the ventricles by applying eroded brain mask
+    eroded_brain_mask = binary_erosion(brain_mask_img, structure=2, iterations=2) 
+
+    # save to nifti file
+    temp_dir = tempfile.mkdtemp()
+    path_csf_mask = op.join(temp_dir,"mask_csf.nii.gz")
+
+    # Apply threshold to identify CSF voxels
+    CSF_mask = nib.Nifti1Image((T2star_img.get_fdata() > T2star_thresh) * eroded_brain_mask, 
+        T2star_img.affine, header=T2star_img.header)
+    CSF_mask.to_filename(path_csf_mask)
+
+    return path_csf_mask
+
+
+def create_edge_out_mask(brain_mask:str=None, erode_edge_voxels:int=2, dilate_out_voxels:int=0):
+    """"Create mask of edge voxels and out-of-the-brain voxels. 
+        The edge mask will be the subtraction of the brain mask minus
+        this mask eroded by erode_voxels, whereas the out_mask will
+        be all the voxels outside the brain mask, even though the user
+        can specify to dilate the brain mask (e.g., in cases of inaccurate 
+        skull stripping)
+
+    Parameters
+    ----------
+    brain_img: path to nifti file with a brain to compute the within-brain mask
+    erode_edge_voxels: :obj:`int`
+        Number of voxels to erode in order to compute the edge mask.
+    dilate_out_voxels: :obj:`int``
+        Number of voxels to erode in order to compute the out-of-the-brain mask
+
+    Returns
+    -------
+    edge_mask: path to nifti volume with binary mask of edge-brain voxels.
+    out_mask: path to nifti volume wiht binary mask of out-of-brain voxels.
+    """
