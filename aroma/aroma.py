@@ -27,6 +27,7 @@ def aroma_workflow(
     debug=False,
     quiet=False,
     mc_source="auto",
+    f_hp=0.01
 ):
     """Run the AROMA workflow.
 
@@ -53,6 +54,8 @@ def aroma_workflow(
     quiet : bool
     mc_source : {"auto"}, optional
         What format is the mc file in?
+    f_hp : float, optional
+        High-pass cutoff frequency in spectrum computations.
     """
     if not op.isfile(in_file):
         raise FileNotFoundError(f"Input file does not exist: {in_file}")
@@ -187,6 +190,7 @@ def aroma_workflow(
         mel_FT_mix,
         TR,
         metric_metadata,
+        f_hp=f_hp
     )
 
     LGR.info("  - classification")

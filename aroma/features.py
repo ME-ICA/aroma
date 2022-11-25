@@ -120,7 +120,12 @@ def feature_time_series(mel_mix, mc, metric_metadata=None):
     return max_RP_corr, metric_metadata
 
 
-def feature_frequency(mel_FT_mix: np.ndarray, TR: float, metric_metadata=None):
+def feature_frequency(
+    mel_FT_mix: np.ndarray,
+    TR: float,
+    metric_metadata=None,
+    f_hp: float = 0.01
+):
     """Extract the high-frequency content feature scores.
 
     This function determines the frequency, as fraction of the Nyquist
@@ -138,6 +143,8 @@ def feature_frequency(mel_FT_mix: np.ndarray, TR: float, metric_metadata=None):
         A dictionary containing metadata about the AROMA metrics.
         If provided, metadata for the ``HFC`` metric will be added.
         Otherwise, no operations will be performed on this parameter.
+    f_hp: float, optional
+        High-pass cutoff frequency in spectrum computations.
 
     Returns
     -------
@@ -170,13 +177,13 @@ def feature_frequency(mel_FT_mix: np.ndarray, TR: float, metric_metadata=None):
     # melodic_FTmix file (assuming the rows range from 0Hz to Nyquist)
     f = Ny * np.arange(1, n_frequencies + 1) / n_frequencies
 
-    # Only include frequencies higher than 0.01Hz
-    fincl = np.squeeze(np.array(np.where(f > 0.01)))
+    # Only include frequencies higher than f_hp Hz
+    fincl = np.squeeze(np.array(np.where(f > f_hp)))
     mel_FT_mix = mel_FT_mix[fincl, :]
     f = f[fincl]
 
     # Set frequency range to [0-1]
-    f_norm = (f - 0.01) / (Ny - 0.01)
+    f_norm = (f - f_hp) / (Ny - f_hp)
 
     # For every IC; get the cumulative sum as a fraction of the total sum
     fcumsum_fract = np.cumsum(mel_FT_mix, axis=0) / np.sum(mel_FT_mix, axis=0)
